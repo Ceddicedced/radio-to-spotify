@@ -10,7 +10,6 @@ import (
 
 type HTMLScraper struct {
 	BaseScraper
-	url       string
 	artistTag string
 	titleTag  string
 }
@@ -24,7 +23,7 @@ func NewHTMLScraper(logger *logrus.Logger, url, artistTag, titleTag string) *HTM
 }
 
 func (h *HTMLScraper) GetNowPlaying() (*Song, error) {
-	h.Logger.Infof("Fetching HTML now playing from URL: %s", h.url)
+	h.Logger.Infof("Fetching HTML now playing from URL: %s", h.BaseScraper.URL)
 	res, err := http.Get(h.BaseScraper.URL)
 	if err != nil {
 		h.Logger.Errorf("Error fetching HTML now playing: %v", err)

@@ -11,7 +11,6 @@ import (
 
 type JSONScraper struct {
 	BaseScraper
-	url       string
 	artistKey []interface{}
 	titleKey  []interface{}
 }
