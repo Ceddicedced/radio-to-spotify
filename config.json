@@ -12,7 +12,7 @@
         "url": "https://www.n-joy.de/public/radioplaylists/njoy.json",
         "type": "json",
         "artistKey": ["song_now_interpret"],
-        "titleKey": ["song_now"]
+        "titleKey": ["song_now_title"]
       },
       {
         "name": "Radio Bollerwagen",
