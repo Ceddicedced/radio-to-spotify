@@ -65,6 +65,8 @@ func fetchNowPlaying(station scraper.Station, logger *logrus.Logger, wg *sync.Wa
 		return
 	}
 
+	logger.Infof("Now playing for station %s: %s - %s", station.Name, nowPlaying.Artist, nowPlaying.Title)
+
 	results <- &scraper.Song{
 		Time:   "",
 		Artist: nowPlaying.Artist,
