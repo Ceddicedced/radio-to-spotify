@@ -40,11 +40,19 @@ func fetchNowPlaying(station scraper.Station, logger *logrus.Logger, wg *sync.Wa
 	defer wg.Done()
 
 	var scraperInstance scraper.Scraper
+	var err error
+
 	switch station.Type {
 	case "html":
 		scraperInstance = scraper.NewHTMLScraper(logger, station.URL, station.ArtistTag, station.TitleTag)
 	case "json":
 		scraperInstance = scraper.NewJSONScraper(logger, station.URL, station.ArtistKey, station.TitleKey)
+	case "plaintext":
+		scraperInstance, err = scraper.NewPlaintextScraper(logger, station.URL, station.Regex)
+		if err != nil {
+			logger.Errorf("Error creating plaintext scraper for station %s: %v", station.Name, err)
+			return
+		}
 	default:
 		logger.Errorf("Unknown scraper type for station %s: %s", station.Name, station.Type)
 		return
@@ -56,8 +64,6 @@ func fetchNowPlaying(station scraper.Station, logger *logrus.Logger, wg *sync.Wa
 		logger.Errorf("Error fetching now playing for station %s: %v", station.Name, err)
 		return
 	}
-
-	logger.Infof("Now playing for station %s: %s - %s", station.Name, nowPlaying.Artist, nowPlaying.Title)
 
 	results <- &scraper.Song{
 		Time:   "",

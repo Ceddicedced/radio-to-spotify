@@ -18,6 +18,7 @@ type Station struct {
 	TitleTag  string        `json:"titleTag,omitempty"`
 	ArtistKey []interface{} `json:"artistKey,omitempty"`
 	TitleKey  []interface{} `json:"titleKey,omitempty"`
+	Regex     string        `json:"regex,omitempty"`
 }
 
 type Scraper interface {
