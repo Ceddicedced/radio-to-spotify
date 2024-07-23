@@ -1,16 +1,18 @@
 package scraper
 
 import (
+	"bufio"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/net/html/charset"
 )
 
 type PlaintextScraper struct {
 	BaseScraper
+	url   string
 	regex *regexp.Regexp
 }
 
@@ -27,8 +29,8 @@ func NewPlaintextScraper(logger *logrus.Logger, url, regexPattern string) (*Plai
 }
 
 func (p *PlaintextScraper) GetNowPlaying() (*Song, error) {
-	p.Logger.Infof("Fetching plaintext now playing from URL: %s", p.BaseScraper.URL)
-	res, err := http.Get(p.BaseScraper.URL)
+	p.Logger.Infof("Fetching plaintext now playing from URL: %s", p.url)
+	res, err := http.Get(p.url)
 	if err != nil {
 		p.Logger.Errorf("Error fetching plaintext now playing: %v", err)
 		return nil, err
@@ -40,13 +42,20 @@ func (p *PlaintextScraper) GetNowPlaying() (*Song, error) {
 		return nil, err
 	}
 
-	body, err := io.ReadAll(res.Body)
+	reader, err := charset.NewReader(res.Body, res.Header.Get("Content-Type"))
 	if err != nil {
+		p.Logger.Errorf("Error creating reader for response body: %v", err)
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(reader)
+	scanner.Scan()
+	if err := scanner.Err(); err != nil {
 		p.Logger.Errorf("Error reading plaintext response: %v", err)
 		return nil, err
 	}
 
-	text := string(body)
+	text := scanner.Text()
 	matches := p.regex.FindStringSubmatch(text)
 	if len(matches) == 0 {
 		return nil, fmt.Errorf("no matches found in plaintext response")
