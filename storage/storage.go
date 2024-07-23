@@ -1,43 +1,29 @@
 package storage
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
 	"radio-to-spotify/scraper"
 )
 
-type Storage struct {
+type Storage interface {
+	StoreNowPlaying(stationID string, song *scraper.Song) error
+	GetNowPlaying(stationID string) (*scraper.Song, error)
+}
+
+type BaseStorage struct {
 	mu    sync.Mutex
 	songs map[string]*scraper.Song
 }
 
-func NewStorage() *Storage {
-	return &Storage{
-		songs: make(map[string]*scraper.Song),
+func NewStorage(storageType, storagePath string) (Storage, error) {
+	switch storageType {
+	case "file":
+		return NewFileStorage(storagePath)
+	case "sqlite":
+		return NewSQLiteStorage(storagePath)
+	default:
+		return nil, fmt.Errorf("unsupported storage type: %s", storageType)
 	}
-}
-
-func (s *Storage) StoreNowPlaying(stationID string, song *scraper.Song) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if existingSong, exists := s.songs[stationID]; exists {
-		if existingSong.Artist == song.Artist && existingSong.Title == song.Title {
-			return nil // Song hasn't changed
-		}
-	}
-	s.songs[stationID] = song
-	return nil
-}
-
-func (s *Storage) GetNowPlaying(stationID string) (*scraper.Song, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	song, exists := s.songs[stationID]
-	if !exists {
-		return nil, errors.New("no song found for station")
-	}
-	return song, nil
 }
