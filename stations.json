@@ -1,7 +1,7 @@
 {
   "stations": [
     {
-      "id": "radiofritz",
+      "id": "fritzfm",
       "name": "Radio Fritz",
       "url": "https://www.fritz.de/include/frz/nowonair/now_on_air.html",
       "type": "html",
@@ -17,7 +17,7 @@
       "titleKey": ["song_now_title"]
     },
     {
-      "id": "radiobollerwagen",
+      "id": "bollerwagen",
       "name": "Radio Bollerwagen",
       "url": "https://www.ffn.de/fileadmin/content/playlist-xml/radiobollerwagen.json",
       "type": "json",
@@ -33,7 +33,7 @@
       "titleKey": [4, "playHistories", 0, "track", "title"]
     },
     {
-      "id": "energynational",
+      "id": "nrjdigital",
       "name": "Energy National",
       "url": "https://api.nrjnet.de/webradio/energy/current/digital.json",
       "type": "json",
@@ -41,7 +41,7 @@
       "titleKey": ["title"]
     },
     {
-      "id": "energyberlin",
+      "id": "nrjberlin",
       "name": "Energy Berlin",
       "url": "https://api.nrjnet.de/webradio/energy/current/berlin.json",
       "type": "json",
@@ -49,14 +49,14 @@
       "titleKey": ["title"]
     },
     {
-      "id": "wdr1live",
+      "id": "1live",
       "name": "WDR 1LIVE",
       "url": "https://www.wdr.de/radio/radiotext/streamtitle_1live.txt",
       "type": "plaintext",
       "regex": "(?P<artist>.+?) - (?P<title>.+)"
     },
     {
-      "id": "943rs2",
+      "id": "rs2",
       "name": "94.3 rs2",
       "url": "https://iris-rs2.loverad.io/flow.json?station=7",
       "type": "json",
