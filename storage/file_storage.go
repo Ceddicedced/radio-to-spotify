@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -12,46 +13,48 @@ import (
 
 type FileStorage struct {
 	mu    sync.Mutex
-	songs map[string]*scraper.Song
-	path  string
+	songs map[string][]struct {
+		scraper.Song
+		Timestamp time.Time `json:"timestamp"`
+	}
+	filePath string
 }
 
-func NewFileStorage(path string) (*FileStorage, error) {
-	return &FileStorage{
-		songs: make(map[string]*scraper.Song),
-		path:  path,
-	}, nil
+func NewFileStorage(filePath string) (*FileStorage, error) {
+	// Ensure the directory exists
+	if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+		return nil, err
+	}
+
+	fs := &FileStorage{
+		songs: make(map[string][]struct {
+			scraper.Song
+			Timestamp time.Time `json:"timestamp"`
+		}),
+		filePath: filePath,
+	}
+	err := fs.loadFromFile()
+	if err != nil {
+		return nil, err
+	}
+	return fs, nil
 }
 
 func (s *FileStorage) Init() error {
-	files, err := os.ReadDir(s.path)
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		if !file.IsDir() {
-			stationID := file.Name()
-			stationID = stationID[:len(stationID)-len(".json")]
-			song, err := s.loadLastSong(stationID)
-			if err == nil {
-				s.songs[stationID] = song
-			}
-		}
-	}
-	return nil
+	return s.loadFromFile()
 }
 
 func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	lastSong, exists := s.songs[stationID]
-	if exists && lastSong.Artist == song.Artist && lastSong.Title == song.Title {
-		return nil // Song hasn't changed
+	lastSongs, exists := s.songs[stationID]
+	if exists && len(lastSongs) > 0 {
+		lastSong := lastSongs[len(lastSongs)-1]
+		if lastSong.Artist == song.Artist && lastSong.Title == song.Title {
+			return nil // Song hasn't changed
+		}
 	}
-
-	s.songs[stationID] = song
 
 	// Append the new song to the list with timestamp
 	songWithTimestamp := struct {
@@ -62,26 +65,46 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 		time.Now(),
 	}
 
-	// Load existing songs
-	filePath := s.getFilePath(stationID)
-	var songs []struct {
-		scraper.Song
-		Timestamp time.Time `json:"timestamp"`
-	}
-
-	file, err := os.Open(filePath)
-	if err == nil {
-		decoder := json.NewDecoder(file)
-		decoder.Decode(&songs)
-		file.Close()
-	} else if !os.IsNotExist(err) {
-		return err
-	}
-
-	songs = append(songs, songWithTimestamp)
+	s.songs[stationID] = append(s.songs[stationID], songWithTimestamp)
 
 	// Serialize the song list and save to file
-	file, err = os.Create(filePath)
+	return s.saveToFile()
+}
+
+func (s *FileStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	lastSongs, exists := s.songs[stationID]
+	if !exists || len(lastSongs) == 0 {
+		return nil, errors.New("no song found for station")
+	}
+
+	return &lastSongs[len(lastSongs)-1].Song, nil
+}
+
+func (s *FileStorage) loadFromFile() error {
+	dbFile := filepath.Join(s.filePath, "songs.json")
+	file, err := os.Open(dbFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil // File does not exist, will create when storing
+		}
+		return err
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&s.songs)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *FileStorage) saveToFile() error {
+	dbFile := filepath.Join(s.filePath, "songs.json")
+	file, err := os.Create(dbFile)
 	if err != nil {
 		return err
 	}
@@ -89,49 +112,5 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
-	if err := encoder.Encode(songs); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *FileStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	song, exists := s.songs[stationID]
-	if !exists {
-		return nil, errors.New("no song found for station")
-	}
-
-	return song, nil
-}
-
-func (s *FileStorage) loadLastSong(stationID string) (*scraper.Song, error) {
-	filePath := s.getFilePath(stationID)
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var songs []struct {
-		scraper.Song
-		Timestamp time.Time `json:"timestamp"`
-	}
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&songs); err != nil {
-		return nil, err
-	}
-
-	if len(songs) == 0 {
-		return nil, errors.New("no song found")
-	}
-
-	return &songs[len(songs)-1].Song, nil
-}
-
-func (s *FileStorage) getFilePath(stationID string) string {
-	return s.path + "/" + stationID + ".json"
+	return encoder.Encode(s.songs)
 }
