@@ -49,6 +49,12 @@ func init() {
 
 func initConfig() {
 	var err error
+
+	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
+	if err != nil {
+		logger.Fatalf("Invalid log level: %v", err)
+	}
+	logger.SetLevel(level)
 	store, err = storage.NewStorage(storageType, storagePath)
 	if err != nil {
 		logger.Fatalf("Error initializing storage: %v", err)
@@ -59,9 +65,4 @@ func initConfig() {
 		logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
-	if err != nil {
-		logger.Fatalf("Invalid log level: %v", err)
-	}
-	logger.SetLevel(level)
 }
