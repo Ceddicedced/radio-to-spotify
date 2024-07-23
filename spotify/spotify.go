@@ -5,7 +5,7 @@ import (
 	"radio-to-spotify/storage"
 )
 
-func CreateSpotifyPlaylist(stationID string, store *storage.Storage) error {
+func CreateSpotifyPlaylist(stationID string, store storage.Storage) error {
 	song, err := store.GetNowPlaying(stationID)
 	if err != nil {
 		return fmt.Errorf("error retrieving now playing song: %v", err)
