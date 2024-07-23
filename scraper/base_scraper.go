@@ -5,7 +5,6 @@ import (
 )
 
 type Song struct {
-	Time   string `json:"time"`
 	Artist string `json:"artist"`
 	Title  string `json:"title"`
 }
