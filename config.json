@@ -1,6 +1,7 @@
 {
   "stations": [
     {
+      "id": "radiofritz",
       "name": "Radio Fritz",
       "url": "https://www.fritz.de/include/frz/nowonair/now_on_air.html",
       "type": "html",
@@ -8,6 +9,7 @@
       "titleTag": "p.songtitle"
     },
     {
+      "id": "njoy",
       "name": "N-JOY",
       "url": "https://www.n-joy.de/public/radioplaylists/njoy.json",
       "type": "json",
@@ -15,6 +17,7 @@
       "titleKey": ["song_now_title"]
     },
     {
+      "id": "radiobollerwagen",
       "name": "Radio Bollerwagen",
       "url": "https://www.ffn.de/fileadmin/content/playlist-xml/radiobollerwagen.json",
       "type": "json",
@@ -22,6 +25,7 @@
       "titleKey": ["songs", 0, "title"]
     },
     {
+      "id": "1046rtl",
       "name": "104.6 RTL",
       "url": "https://www.104.6rtl.com/services/program-info/live/rtl",
       "type": "json",
@@ -29,6 +33,7 @@
       "titleKey": [4, "playHistories", 0, "track", "title"]
     },
     {
+      "id": "energynational",
       "name": "Energy National",
       "url": "https://api.nrjnet.de/webradio/energy/current/digital.json",
       "type": "json",
@@ -36,6 +41,7 @@
       "titleKey": ["title"]
     },
     {
+      "id": "energyberlin",
       "name": "Energy Berlin",
       "url": "https://api.nrjnet.de/webradio/energy/current/berlin.json",
       "type": "json",
@@ -43,12 +49,14 @@
       "titleKey": ["title"]
     },
     {
+      "id": "wdr1live",
       "name": "WDR 1LIVE",
       "url": "https://www.wdr.de/radio/radiotext/streamtitle_1live.txt",
       "type": "plaintext",
       "regex": "(?P<artist>.+?) - (?P<title>.+)"
     },
     {
+      "id": "943rs2",
       "name": "94.3 rs2",
       "url": "https://iris-rs2.loverad.io/flow.json?station=7",
       "type": "json",
@@ -56,6 +64,7 @@
       "titleKey": ["result", "entry", 0, "song", "entry", 0, "title"]
     },
     {
+      "id": "technobasefm",
       "name": "TechnoBase.FM",
       "url": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=technobase.fm",
       "type": "json",
