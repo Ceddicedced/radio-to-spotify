@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -28,6 +29,12 @@ type Station struct {
 
 type Config struct {
 	Stations []Station `json:"stations"`
+}
+
+type StationSong struct {
+	StationID string
+	Station   string
+	Song      Song
 }
 
 type Scraper interface {
@@ -64,7 +71,7 @@ func loadConfig(configFile string) (*Config, error) {
 	return &config, nil
 }
 
-func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string) ([]*Song, error) {
+func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string) ([]*StationSong, error) {
 	config, err := loadConfig(configFile)
 	if err != nil {
 		return nil, err
@@ -72,18 +79,23 @@ func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string)
 
 	var stations []Station
 	if stationID != "" {
+		found := false
 		for _, station := range config.Stations {
 			if station.ID == stationID {
 				stations = append(stations, station)
+				found = true
 				break
 			}
+		}
+		if !found {
+			return nil, fmt.Errorf("no station found with id: %s", stationID)
 		}
 	} else {
 		stations = config.Stations
 	}
 
 	var wg sync.WaitGroup
-	results := make(chan *Song, len(stations))
+	results := make(chan *StationSong, len(stations))
 
 	for _, station := range stations {
 		wg.Add(1)
@@ -93,15 +105,15 @@ func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string)
 	wg.Wait()
 	close(results)
 
-	var songs []*Song
+	var stationSongs []*StationSong
 	for result := range results {
-		songs = append(songs, result)
+		stationSongs = append(stationSongs, result)
 	}
 
-	return songs, nil
+	return stationSongs, nil
 }
 
-func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- *Song) {
+func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- *StationSong) {
 	defer wg.Done()
 
 	var scraperInstance Scraper
@@ -130,8 +142,9 @@ func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, re
 		return
 	}
 
-	results <- &Song{
-		Artist: nowPlaying.Artist,
-		Title:  nowPlaying.Title,
+	results <- &StationSong{
+		StationID: station.ID,
+		Station:   station.Name,
+		Song:      *nowPlaying,
 	}
 }
