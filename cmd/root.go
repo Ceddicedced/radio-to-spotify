@@ -17,7 +17,7 @@ var (
 	storagePath string
 	store       storage.Storage
 	logLevel    string
-	configFile  string
+	stationFile string
 	stationID   string
 )
 
@@ -39,7 +39,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&storageType, "storage", "file", "Storage type: file or sqlite")
 	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "data", "Path to storage file or database")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Logging level: debug, info, warn, error, fatal, panic")
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "config.json", "Path to config file")
+	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")
 
 	rootCmd.AddCommand(fetchCmd)

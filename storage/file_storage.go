@@ -88,6 +88,7 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(songs); err != nil {
 		return err
 	}

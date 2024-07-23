@@ -24,7 +24,7 @@ var storeCmd = &cobra.Command{
 }
 
 func executeStore() {
-	stationSongs, err := scraper.FetchNowPlaying(configFile, logger, stationID)
+	stationSongs, err := scraper.FetchNowPlaying(stationFile, logger, stationID)
 	if err != nil {
 		logger.Fatalf("Error fetching now playing: %v", err)
 	}

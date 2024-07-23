@@ -50,8 +50,8 @@ func NewBaseScraper(logger *logrus.Logger, URL string) *BaseScraper {
 	return &BaseScraper{Logger: logger, URL: URL}
 }
 
-func loadConfig(configFile string) (*Config, error) {
-	file, err := os.Open(configFile)
+func loadConfig(stationFile string) (*Config, error) {
+	file, err := os.Open(stationFile)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func loadConfig(configFile string) (*Config, error) {
 	return &config, nil
 }
 
-func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string) ([]*StationSong, error) {
-	config, err := loadConfig(configFile)
+func FetchNowPlaying(stationFile string, logger *logrus.Logger, stationID string) ([]*StationSong, error) {
+	config, err := loadConfig(stationFile)
 	if err != nil {
 		return nil, err
 	}
