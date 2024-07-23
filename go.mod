@@ -1,4 +1,4 @@
-module radio-to-spotify-playlist
+module radio-to-spotify
 
 go 1.22.5
 
