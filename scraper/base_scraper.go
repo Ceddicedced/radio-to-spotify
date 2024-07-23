@@ -5,9 +5,9 @@ import (
 )
 
 type Song struct {
-	Time   string
-	Artist string
-	Title  string
+	Time   string `json:"time"`
+	Artist string `json:"artist"`
+	Title  string `json:"title"`
 }
 
 type Station struct {
