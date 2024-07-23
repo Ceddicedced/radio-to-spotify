@@ -87,7 +87,7 @@ func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string)
 
 	for _, station := range stations {
 		wg.Add(1)
-		go fetchNowPlayingForStation(station, logger, &wg, results)
+		go fetchStation(station, logger, &wg, results)
 	}
 
 	wg.Wait()
@@ -101,7 +101,7 @@ func FetchNowPlaying(configFile string, logger *logrus.Logger, stationID string)
 	return songs, nil
 }
 
-func fetchNowPlayingForStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- *Song) {
+func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- *Song) {
 	defer wg.Done()
 
 	var scraperInstance Scraper
