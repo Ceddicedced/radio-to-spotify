@@ -3,26 +3,30 @@ package storage
 import (
 	"database/sql"
 	"errors"
+	"fmt"
+	"sync"
 
 	"radio-to-spotify/scraper"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type SQLiteStorage struct {
-	BaseStorage
-	db *sql.DB
+	mu    sync.Mutex
+	songs map[string]*scraper.Song
+	db    *sql.DB
 }
 
 func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	fmt.Println("Creating SQLite storage")
+	db, err := sql.Open("sqlite3", dbPath+"db.sqlite")
 	if err != nil {
 		return nil, err
 	}
 
 	storage := &SQLiteStorage{
-		BaseStorage: BaseStorage{
-			songs: make(map[string]*scraper.Song),
-		},
-		db: db,
+		songs: make(map[string]*scraper.Song),
+		db:    db,
 	}
 
 	err = storage.initSQLite()
@@ -35,29 +39,46 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 
 func (s *SQLiteStorage) initSQLite() error {
 	_, err := s.db.Exec(`CREATE TABLE IF NOT EXISTS now_playing (
-		station_id TEXT PRIMARY KEY,
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		station_id TEXT,
 		artist TEXT,
-		title TEXT
+		title TEXT,
+		timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 	)`)
 	return err
+}
+
+func (s *SQLiteStorage) Init() error {
+	rows, err := s.db.Query(`SELECT station_id, artist, title FROM now_playing WHERE timestamp = (SELECT MAX(timestamp) FROM now_playing AS np WHERE np.station_id = now_playing.station_id)`)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var stationID, artist, title string
+		if err := rows.Scan(&stationID, &artist, &title); err != nil {
+			return err
+		}
+		s.songs[stationID] = &scraper.Song{Artist: artist, Title: title}
+	}
+
+	return rows.Err()
 }
 
 func (s *SQLiteStorage) StoreNowPlaying(stationID string, song *scraper.Song) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Check if the song has changed
-	if existingSong, exists := s.songs[stationID]; exists {
-		if existingSong.Artist == song.Artist && existingSong.Title == song.Title {
-			return nil // Song hasn't changed
-		}
+	lastSong, exists := s.songs[stationID]
+	if exists && lastSong.Artist == song.Artist && lastSong.Title == song.Title {
+		return nil // Song hasn't changed
 	}
 
-	// Update the in-memory store
 	s.songs[stationID] = song
 
-	// Store in SQLite database
-	_, err := s.db.Exec(`INSERT OR REPLACE INTO now_playing (station_id, artist, title) VALUES (?, ?, ?)`,
+	// Insert the new song into the database
+	_, err := s.db.Exec(`INSERT INTO now_playing (station_id, artist, title) VALUES (?, ?, ?)`,
 		stationID, song.Artist, song.Title)
 	if err != nil {
 		return err
@@ -70,23 +91,10 @@ func (s *SQLiteStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Check if the song is in the in-memory store
-	if song, exists := s.songs[stationID]; exists {
-		return song, nil
+	song, exists := s.songs[stationID]
+	if !exists {
+		return nil, errors.New("no song found for station")
 	}
 
-	// Load from SQLite database
-	row := s.db.QueryRow(`SELECT artist, title FROM now_playing WHERE station_id = ?`, stationID)
-	var song scraper.Song
-	err := row.Scan(&song.Artist, &song.Title)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("no song found for station")
-		}
-		return nil, err
-	}
-
-	// Update the in-memory store
-	s.songs[stationID] = &song
-	return &song, nil
+	return song, nil
 }
