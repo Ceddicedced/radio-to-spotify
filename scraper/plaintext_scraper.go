@@ -12,7 +12,6 @@ import (
 
 type PlaintextScraper struct {
 	BaseScraper
-	url   string
 	regex *regexp.Regexp
 }
 
@@ -29,8 +28,8 @@ func NewPlaintextScraper(logger *logrus.Logger, url, regexPattern string) (*Plai
 }
 
 func (p *PlaintextScraper) GetNowPlaying() (*Song, error) {
-	p.Logger.Infof("Fetching plaintext now playing from URL: %s", p.url)
-	res, err := http.Get(p.url)
+	p.Logger.Infof("Fetching plaintext now playing from URL: %s", p.BaseScraper.URL)
+	res, err := http.Get(p.BaseScraper.URL)
 	if err != nil {
 		p.Logger.Errorf("Error fetching plaintext now playing: %v", err)
 		return nil, err
