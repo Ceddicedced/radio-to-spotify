@@ -28,7 +28,7 @@ func NewPlaintextScraper(logger *logrus.Logger, url, regexPattern string) (*Plai
 }
 
 func (p *PlaintextScraper) GetNowPlaying() (*Song, error) {
-	p.Logger.Infof("Fetching plaintext now playing from URL: %s", p.BaseScraper.URL)
+	p.Logger.Debugf("Fetching plaintext now playing from URL: %s", p.BaseScraper.URL)
 	res, err := http.Get(p.BaseScraper.URL)
 	if err != nil {
 		p.Logger.Errorf("Error fetching plaintext now playing: %v", err)

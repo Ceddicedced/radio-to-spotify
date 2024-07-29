@@ -55,7 +55,7 @@ func getValueFromPath(data interface{}, path []interface{}) (string, error) {
 }
 
 func (j *JSONScraper) GetNowPlaying() (*Song, error) {
-	j.Logger.Infof("Fetching JSON now playing from URL: %s", j.BaseScraper.URL)
+	j.Logger.Debugf("Fetching JSON now playing from URL: %s", j.BaseScraper.URL)
 	res, err := http.Get(j.BaseScraper.URL)
 	if err != nil {
 		j.Logger.Errorf("Error fetching JSON now playing: %v", err)
