@@ -10,6 +10,7 @@ import (
 type Storage interface {
 	StoreNowPlaying(stationID string, song *scraper.Song) error
 	GetNowPlaying(stationID string) (*scraper.Song, error)
+	GetLastHourSongs(stationID string) ([]scraper.Song, error)
 	Init() error
 }
 

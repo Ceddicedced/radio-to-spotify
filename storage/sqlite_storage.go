@@ -147,3 +147,46 @@ func (s *SQLiteStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
 
 	return song, nil
 }
+
+func (s *SQLiteStorage) GetLastHourSongs(stationID string) ([]scraper.Song, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.songs[stationID]; !exists {
+		return nil, errors.New("no song found for station")
+	}
+	rows, err := s.db.Query(fmt.Sprintf(`SELECT artist, title FROM station_%s WHERE timestamp > datetime('now', '-1 hour')`, stationID))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var songs []scraper.Song
+	for rows.Next() {
+		var song scraper.Song
+		if err := rows.Scan(&song.Artist, &song.Title); err != nil {
+			return nil, err
+		}
+		songs = append(songs, song)
+	}
+
+	return songs, rows.Err()
+}
+
+func (s *SQLiteStorage) GetAllStations() ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	tables, err := s.getStationTables()
+	if err != nil {
+		return nil, err
+	}
+
+	var stations []string
+	for _, table := range tables {
+		stationID := strings.TrimPrefix(table, "station_")
+		stations = append(stations, stationID)
+	}
+
+	return stations, nil
+}

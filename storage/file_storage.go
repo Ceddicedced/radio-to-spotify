@@ -71,18 +71,6 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 	return s.saveToFile()
 }
 
-func (s *FileStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	lastSongs, exists := s.songs[stationID]
-	if !exists || len(lastSongs) == 0 {
-		return nil, errors.New("no song found for station")
-	}
-
-	return &lastSongs[len(lastSongs)-1].Song, nil
-}
-
 func (s *FileStorage) loadFromFile() error {
 	dbFile := filepath.Join(s.filePath, "songs.json")
 	file, err := os.Open(dbFile)
@@ -113,4 +101,47 @@ func (s *FileStorage) saveToFile() error {
 	encoder := json.NewEncoder(file)
 	encoder.SetIndent("", "  ")
 	return encoder.Encode(s.songs)
+}
+
+func (s *FileStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	lastSongs, exists := s.songs[stationID]
+	if !exists || len(lastSongs) == 0 {
+		return nil, errors.New("no song found for station")
+	}
+
+	return &lastSongs[len(lastSongs)-1].Song, nil
+}
+
+func (s *FileStorage) GetLastHourSongs(stationID string) ([]scraper.Song, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	lastSongs, exists := s.songs[stationID]
+	if !exists || len(lastSongs) == 0 {
+		return nil, errors.New("no song found for station")
+	}
+
+	var songs []scraper.Song
+	oneHourAgo := time.Now().Add(-1 * time.Hour)
+	for _, song := range lastSongs {
+		if song.Timestamp.After(oneHourAgo) {
+			songs = append(songs, song.Song)
+		}
+	}
+
+	return songs, nil
+}
+
+func (s *FileStorage) GetAllStations() ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var stations []string
+	for stationID := range s.songs {
+		stations = append(stations, stationID)
+	}
+	return stations, nil
 }
