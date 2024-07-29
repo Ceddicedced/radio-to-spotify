@@ -5,12 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Package",
+            "name": "Fetch",
             "type": "go",
             "request": "launch",
             "mode": "auto",
             "program": "main.go",
             "args": ["fetch"]
+        },
+        {
+            "name": "Store",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": ["store"]
+        },
+        {
+            "name": "Daemon",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": ["daemon"]
+        },
+        {
+            "name": "Playlist",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "main.go",
+            "args": ["playlist","--station","rs2"]
         }
     ]
 }
