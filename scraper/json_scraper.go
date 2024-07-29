@@ -64,7 +64,7 @@ func (j *JSONScraper) GetNowPlaying() (*Song, error) {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		j.Logger.Errorf("Received non-200 status code: %d", res.StatusCode)
+		err = fmt.Errorf("received non-200 status code: %d", res.StatusCode)
 		return nil, err
 	}
 
