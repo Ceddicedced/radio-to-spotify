@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
-
 	"radio-to-spotify/spotify"
+
+	"github.com/spf13/cobra"
 )
 
 func init() {
@@ -19,6 +19,10 @@ var playlistCmd = &cobra.Command{
 }
 
 func executePlaylist() {
+	if stationID == "" {
+		logger.Fatalf("Station ID is required")
+	}
+
 	err := spotify.CreateSpotifyPlaylist(stationID, store)
 	if err != nil {
 		logger.Fatalf("Error creating Spotify playlist: %v", err)
