@@ -42,9 +42,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")
 
-	rootCmd.AddCommand(fetchCmd)
-	rootCmd.AddCommand(storeCmd)
-	rootCmd.AddCommand(playlistCmd)
 }
 
 func initConfig() {
