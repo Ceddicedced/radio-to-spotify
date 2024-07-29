@@ -35,7 +35,7 @@
     {
       "id": "nrjdigital",
       "name": "Energy National",
-      "url": "https://api.nrjnet.de/webradio/energy/current/digital.json",
+      "url": "https://api.nrjnet.de/webradio/nrj-energy-de/current/national.json",
       "type": "json",
       "artistKey": ["artist"],
       "titleKey": ["title"]
@@ -43,7 +43,7 @@
     {
       "id": "nrjberlin",
       "name": "Energy Berlin",
-      "url": "https://api.nrjnet.de/webradio/energy/current/berlin.json",
+      "url": "https://api.nrjnet.de/webradio/nrj-energy-de/current/berlin.json",
       "type": "json",
       "artistKey": ["artist"],
       "titleKey": ["title"]
