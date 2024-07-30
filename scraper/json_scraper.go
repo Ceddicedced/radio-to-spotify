@@ -33,7 +33,7 @@ func (s *JSONScraper) GetNowPlaying() (*Song, error) {
 		return nil, fmt.Errorf("error fetching URL: %s, status code: %d", s.URL, resp.StatusCode)
 	}
 
-	var data map[string]interface{}
+	var data interface{}
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
 		return nil, err
@@ -55,14 +55,29 @@ func (s *JSONScraper) GetNowPlaying() (*Song, error) {
 	}, nil
 }
 
-func getValueFromKey(data map[string]interface{}, keys []interface{}) (interface{}, error) {
+func getValueFromKey(data interface{}, keys []interface{}) (interface{}, error) {
 	var value interface{} = data
 	for _, key := range keys {
 		switch key := key.(type) {
 		case string:
-			value = value.(map[string]interface{})[key]
+			if m, ok := value.(map[string]interface{}); ok {
+				value = m[key]
+			} else {
+				return nil, fmt.Errorf("invalid key type: %T", key)
+			}
 		case int:
-			value = value.([]interface{})[key]
+			if a, ok := value.([]interface{}); ok {
+				value = a[key]
+			} else {
+				return nil, fmt.Errorf("invalid key type: %T", key)
+			}
+		case float64:
+			index := int(key)
+			if a, ok := value.([]interface{}); ok {
+				value = a[index]
+			} else {
+				return nil, fmt.Errorf("invalid key type: %T", key)
+			}
 		default:
 			return nil, fmt.Errorf("invalid key type: %T", key)
 		}

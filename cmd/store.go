@@ -40,12 +40,12 @@ func executeStore() {
 		logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	stationSongs, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
+	stations, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
 	if err != nil {
 		logger.Fatalf("Error fetching now playing: %v", err)
 	}
 
-	for i, station := range stationSongs {
+	for i, station := range stations {
 		if storeDryRun {
 			fmt.Printf("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		} else {
