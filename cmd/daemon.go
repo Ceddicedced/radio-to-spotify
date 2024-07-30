@@ -17,6 +17,7 @@ import (
 var (
 	noStore    bool
 	noPlaylist bool
+	interval   time.Duration
 )
 
 type ScraperService struct {
@@ -83,6 +84,7 @@ var daemonCmd = &cobra.Command{
 func init() {
 	daemonCmd.Flags().BoolVar(&noStore, "no-store", false, "Run without storing the now playing songs")
 	daemonCmd.Flags().BoolVar(&noPlaylist, "no-playlist", false, "Run without updating the Spotify playlist")
+	daemonCmd.Flags().DurationVar(&interval, "interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
 	rootCmd.AddCommand(daemonCmd)
 }
 
@@ -112,7 +114,7 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	}
 
 	scraperService := &ScraperService{
-		Interval:      1 * time.Minute, // Adjust the interval as needed
+		Interval:      interval, // Use the interval from the flag
 		stopScraper:   make(chan struct{}),
 		configHandler: configHandler,
 		storage:       store,
