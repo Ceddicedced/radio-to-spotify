@@ -41,6 +41,10 @@ func (s *HTMLScraper) GetNowPlaying() (*Song, error) {
 	artist := doc.Find(s.ArtistTag).Text()
 	title := doc.Find(s.TitleTag).Text()
 
+	if artist == "" || title == "" {
+		return nil, fmt.Errorf("could not find artist or title in HTML")
+	}
+
 	return &Song{
 		Artist: artist,
 		Title:  title,
