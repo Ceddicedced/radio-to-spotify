@@ -7,6 +7,7 @@ import (
 
 	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
+	"radio-to-spotify/spotify"
 	"radio-to-spotify/storage"
 
 	"github.com/sirupsen/logrus"
@@ -18,6 +19,7 @@ type ScraperService struct {
 	stopScraper   chan struct{}
 	configHandler *config.ConfigHandler
 	storage       storage.Storage
+	spotify       *spotify.SpotifyService
 	logger        *logrus.Logger
 }
 
@@ -55,6 +57,13 @@ func (s *ScraperService) scrape() {
 		} else {
 			s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
 		}
+
+		err = s.spotify.UpdateSpotifyPlaylist(s.configHandler, station.ID, s.storage)
+		if err != nil {
+			s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
+		} else {
+			s.logger.Debugf("Updated Spotify playlist for station %s", station.ID)
+		}
 	}
 }
 
@@ -88,11 +97,17 @@ func runDaemon(cmd *cobra.Command, args []string) {
 		logger.Fatalf("Error initializing storage: %v", err)
 	}
 
+	spotifyService, err := spotify.NewSpotifyService(logger)
+	if err != nil {
+		logger.Fatalf("Error initializing Spotify service: %v", err)
+	}
+
 	scraperService := &ScraperService{
 		Interval:      1 * time.Minute, // Adjust the interval as needed
 		stopScraper:   make(chan struct{}),
 		configHandler: configHandler,
 		storage:       store,
+		spotify:       spotifyService,
 		logger:        logger,
 	}
 
