@@ -3,6 +3,7 @@ package cmd
 import (
 	"radio-to-spotify/config"
 	"radio-to-spotify/spotify"
+	"radio-to-spotify/storage"
 
 	"github.com/spf13/cobra"
 )
@@ -25,8 +26,23 @@ func executePlaylist() {
 		logger.Fatalf("Error loading config: %v", err)
 	}
 
-	err = spotify.CreateSpotifyPlaylist(configHandler, stationID, store)
+	store, err := storage.NewStorage(storageType, storagePath)
 	if err != nil {
-		logger.Fatalf("Error creating Spotify playlist: %v", err)
+		logger.Fatalf("Error initializing storage: %v", err)
+	}
+
+	err = store.Init()
+	if err != nil {
+		logger.Fatalf("Error initializing storage: %v", err)
+	}
+
+	spotifyService, err := spotify.NewSpotifyService(logger)
+	if err != nil {
+		logger.Fatalf("Error initializing Spotify service: %v", err)
+	}
+
+	err = spotifyService.UpdateSpotifyPlaylist(configHandler, stationID, store)
+	if err != nil {
+		logger.Fatalf("Error updating Spotify playlist: %v", err)
 	}
 }
