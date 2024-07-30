@@ -108,9 +108,14 @@ func runDaemon(cmd *cobra.Command, args []string) {
 		logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	spotifyService, err := spotify.NewSpotifyService(logger)
-	if err != nil {
-		logger.Fatalf("Error initializing Spotify service: %v", err)
+	var spotifyService *spotify.SpotifyService
+	if !noPlaylist {
+		spotifyService, err = spotify.NewSpotifyService(logger)
+		if err != nil {
+			logger.Fatalf("Error initializing Spotify service: %v", err)
+		}
+	} else {
+		logger.Info("Running without Spotify playlist update")
 	}
 
 	scraperService := &ScraperService{
