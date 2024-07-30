@@ -14,6 +14,11 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	noStore    bool
+	noPlaylist bool
+)
+
 type ScraperService struct {
 	Interval      time.Duration
 	stopScraper   chan struct{}
@@ -44,25 +49,27 @@ func (s *ScraperService) Stop() {
 
 func (s *ScraperService) scrape() {
 	s.logger.Debugf("Scraping now playing songs")
-	stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, "")
+	stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
 	if err != nil {
 		s.logger.Warnf("Error fetching now playing: %v", err)
 		return
 	}
 
 	for i, station := range stations {
-		err := s.storage.StoreNowPlaying(station.ID, songs[i])
-		if err != nil {
-			s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
-		} else {
-			s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
+		if !noStore {
+			err := s.storage.StoreNowPlaying(station.ID, songs[i])
+			if err != nil {
+				s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
+			} else {
+				s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
+			}
 		}
 
-		err = s.spotify.UpdateSpotifyPlaylist(s.configHandler, station.ID, s.storage)
-		if err != nil {
-			s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
-		} else {
-			s.logger.Debugf("Updated Spotify playlist for station %s", station.ID)
+		if !noPlaylist {
+			err = s.spotify.UpdateSpotifyPlaylist(s.configHandler, station.ID, s.storage)
+			if err != nil {
+				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
+			}
 		}
 	}
 }
@@ -74,6 +81,8 @@ var daemonCmd = &cobra.Command{
 }
 
 func init() {
+	daemonCmd.Flags().BoolVar(&noStore, "no-store", false, "Run without storing the now playing songs")
+	daemonCmd.Flags().BoolVar(&noPlaylist, "no-playlist", false, "Run without updating the Spotify playlist")
 	rootCmd.AddCommand(daemonCmd)
 }
 
