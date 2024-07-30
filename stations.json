@@ -61,7 +61,8 @@
       "url": "https://iris-rs2.loverad.io/flow.json?station=7",
       "type": "json",
       "artistKey": ["result", "entry", 0, "song", "entry", 0, "artist", "entry", 0, "name"],
-      "titleKey": ["result", "entry", 0, "song", "entry", 0, "title"]
+      "titleKey": ["result", "entry", 0, "song", "entry", 0, "title"],
+      "playlistID" :"4v8AVb5aOixKbR2NjDZuLq"
     },
     {
       "id": "technobasefm",
