@@ -25,7 +25,7 @@ func NewSpotifyService(logger *logrus.Logger) (*SpotifyService, error) {
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("Logged in as: %s", user.ID)
+	logger.Infof("Logged in as: %s", user.DisplayName)
 	return &SpotifyService{client: client, Logger: logger}, nil
 }
 
