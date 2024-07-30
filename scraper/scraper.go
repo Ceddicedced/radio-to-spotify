@@ -90,7 +90,7 @@ func fetchStation(station *config.Station, logger *logrus.Logger, wg *sync.WaitG
 	logger.Debugf("Fetching now playing for station: %s (%s)", station.Name, station.ID)
 	nowPlaying, err := scraperInstance.GetNowPlaying()
 	if err != nil {
-		logger.Errorf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
+		logger.Warnf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
 		return
 	}
 
