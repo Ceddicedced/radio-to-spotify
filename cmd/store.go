@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
 	"radio-to-spotify/storage"
@@ -47,13 +46,13 @@ func executeStore() {
 
 	for i, station := range stations {
 		if storeDryRun {
-			fmt.Printf("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+			logger.Infof("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		} else {
 			err := store.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
 				logger.Fatalf("Error storing now playing for station %s: %v", station.ID, err)
 			}
-			fmt.Printf("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+			logger.Infof("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		}
 	}
 }
