@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"radio-to-spotify/config"
+	"radio-to-spotify/scraper"
+	"radio-to-spotify/storage"
 
 	"github.com/spf13/cobra"
-
-	"radio-to-spotify/scraper"
 )
 
 var storeDryRun bool
@@ -24,20 +25,35 @@ var storeCmd = &cobra.Command{
 }
 
 func executeStore() {
-	stationSongs, err := scraper.FetchNowPlaying(stationFile, logger, stationID)
+	configHandler, err := config.NewConfigHandler(stationFile)
+	if err != nil {
+		logger.Fatalf("Error loading config: %v", err)
+	}
+
+	store, err := storage.NewStorage(storageType, storagePath)
+	if err != nil {
+		logger.Fatalf("Error initializing storage: %v", err)
+	}
+
+	err = store.Init()
+	if err != nil {
+		logger.Fatalf("Error initializing storage: %v", err)
+	}
+
+	stationSongs, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
 	if err != nil {
 		logger.Fatalf("Error fetching now playing: %v", err)
 	}
 
-	for _, stationSong := range stationSongs {
+	for i, station := range stationSongs {
 		if storeDryRun {
-			fmt.Printf("Dry run: would store song for station %s: %s - %s\n", stationSong.StationID, stationSong.Song.Artist, stationSong.Song.Title)
+			fmt.Printf("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		} else {
-			err := store.StoreNowPlaying(stationSong.StationID, &stationSong.Song)
+			err := store.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
-				logger.Fatalf("Error storing now playing: %v", err)
+				logger.Fatalf("Error storing now playing for station %s: %v", station.ID, err)
 			}
-			fmt.Printf("Stored song for station %s: %s - %s\n", stationSong.StationID, stationSong.Song.Artist, stationSong.Song.Title)
+			fmt.Printf("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		}
 	}
 }

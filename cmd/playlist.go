@@ -1,14 +1,11 @@
 package cmd
 
 import (
+	"radio-to-spotify/config"
 	"radio-to-spotify/spotify"
 
 	"github.com/spf13/cobra"
 )
-
-func init() {
-	rootCmd.AddCommand(playlistCmd)
-}
 
 var playlistCmd = &cobra.Command{
 	Use:   "playlist",
@@ -18,12 +15,17 @@ var playlistCmd = &cobra.Command{
 	},
 }
 
+func init() {
+	rootCmd.AddCommand(playlistCmd)
+}
+
 func executePlaylist() {
-	if stationID == "" {
-		logger.Fatalf("Station ID is required")
+	configHandler, err := config.NewConfigHandler(stationFile)
+	if err != nil {
+		logger.Fatalf("Error loading config: %v", err)
 	}
 
-	err := spotify.CreateSpotifyPlaylist(stationID, store)
+	err = spotify.CreateSpotifyPlaylist(configHandler, stationID, store)
 	if err != nil {
 		logger.Fatalf("Error creating Spotify playlist: %v", err)
 	}

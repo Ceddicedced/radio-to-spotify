@@ -1,11 +1,9 @@
 package scraper
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"os"
 	"sync"
+
+	"radio-to-spotify/config"
 
 	"github.com/sirupsen/logrus"
 )
@@ -13,28 +11,6 @@ import (
 type Song struct {
 	Artist string
 	Title  string
-}
-
-type Station struct {
-	ID        string        `json:"id"`
-	Name      string        `json:"name"`
-	URL       string        `json:"url"`
-	Type      string        `json:"type"`
-	ArtistTag string        `json:"artistTag,omitempty"`
-	TitleTag  string        `json:"titleTag,omitempty"`
-	ArtistKey []interface{} `json:"artistKey,omitempty"`
-	TitleKey  []interface{} `json:"titleKey,omitempty"`
-	Regex     string        `json:"regex,omitempty"`
-}
-
-type Config struct {
-	Stations []Station `json:"stations"`
-}
-
-type StationSong struct {
-	StationID string
-	Station   string
-	Song      Song
 }
 
 type Scraper interface {
@@ -50,70 +26,46 @@ func NewBaseScraper(logger *logrus.Logger, URL string) *BaseScraper {
 	return &BaseScraper{Logger: logger, URL: URL}
 }
 
-func loadConfig(stationFile string) (*Config, error) {
-	file, err := os.Open(stationFile)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	byteValue, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	var config Config
-	err = json.Unmarshal(byteValue, &config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &config, nil
-}
-
-func FetchNowPlaying(stationFile string, logger *logrus.Logger, stationID string) ([]*StationSong, error) {
-	config, err := loadConfig(stationFile)
-	if err != nil {
-		return nil, err
-	}
-
-	var stations []Station
+func FetchNowPlaying(configHandler *config.ConfigHandler, logger *logrus.Logger, stationID string) ([]*config.Station, []*Song, error) {
+	var stations []config.Station
 	if stationID != "" {
-		found := false
-		for _, station := range config.Stations {
-			if station.ID == stationID {
-				stations = append(stations, station)
-				found = true
-				break
-			}
+		station, err := configHandler.GetStationByID(stationID)
+		if err != nil {
+			return nil, nil, err
 		}
-		if !found {
-			return nil, fmt.Errorf("no station found with id: %s", stationID)
-		}
+		stations = append(stations, *station)
 	} else {
-		stations = config.Stations
+		stations = configHandler.GetAllStations()
 	}
 
 	var wg sync.WaitGroup
-	results := make(chan *StationSong, len(stations))
+	results := make(chan struct {
+		Station *config.Station
+		Song    *Song
+	}, len(stations))
 
 	for _, station := range stations {
 		wg.Add(1)
-		go fetchStation(station, logger, &wg, results)
+		go fetchStation(&station, logger, &wg, results)
 	}
 
 	wg.Wait()
 	close(results)
 
-	var stationSongs []*StationSong
+	var stationSongs []*config.Station
+	var songs []*Song
 	for result := range results {
-		stationSongs = append(stationSongs, result)
+		stationSongs = append(stationSongs, result.Station)
+		songs = append(songs, result.Song)
 	}
 
-	return stationSongs, nil
+	return stationSongs, songs, nil
 }
 
-func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- *StationSong) {
+func fetchStation(station *config.Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- struct {
+	Station *config.Station
+	Song    *Song
+}) {
 	defer wg.Done()
 
 	var scraperInstance Scraper
@@ -135,16 +87,18 @@ func fetchStation(station Station, logger *logrus.Logger, wg *sync.WaitGroup, re
 		return
 	}
 
-	logger.Debugf("Fetching now playing for station: %s (%s)", station.Name, station.ID)
+	logger.Infof("Fetching now playing for station: %s (%s)", station.Name, station.ID)
 	nowPlaying, err := scraperInstance.GetNowPlaying()
 	if err != nil {
-		logger.Warnf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
+		logger.Errorf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
 		return
 	}
 
-	results <- &StationSong{
-		StationID: station.ID,
-		Station:   station.Name,
-		Song:      *nowPlaying,
+	results <- struct {
+		Station *config.Station
+		Song    *Song
+	}{
+		Station: station,
+		Song:    nowPlaying,
 	}
 }

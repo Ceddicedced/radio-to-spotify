@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"radio-to-spotify/config"
 	"radio-to-spotify/storage"
 	"time"
 
@@ -112,7 +113,7 @@ func getClient() (*spotify.Client, error) {
 	return client, nil
 }
 
-func CreateSpotifyPlaylist(stationID string, store storage.Storage) error {
+func CreateSpotifyPlaylist(configHandler *config.ConfigHandler, stationID string, store storage.Storage) error {
 	client, err := getClient()
 	if err != nil {
 		return err
@@ -125,15 +126,31 @@ func CreateSpotifyPlaylist(stationID string, store storage.Storage) error {
 
 	fmt.Printf("Logged in as: %s\n", user.DisplayName)
 
+	station, err := configHandler.GetStationByID(stationID)
+	if err != nil {
+		return err
+	}
+
 	songs, err := store.GetLastHourSongs(stationID)
 	if err != nil {
 		return err
 	}
 
-	playlistName := "TEST"
-	playlist, err := client.CreatePlaylistForUser(context.Background(), user.ID, playlistName, "Songs played on "+stationID, false, false)
-	if err != nil {
-		return err
+	var playlistID spotify.ID
+	if station.PlaylistID != "" {
+		playlistID = spotify.ID(station.PlaylistID)
+	} else {
+		playlistName := fmt.Sprintf("Now Playing on %s - %s", station.Name, time.Now().Format("2006-01-02 15:04:05"))
+		playlist, err := client.CreatePlaylistForUser(context.Background(), user.ID, playlistName, "Songs played on "+station.Name, false, false)
+		if err != nil {
+			return err
+		}
+		playlistID = playlist.ID
+		station.PlaylistID = string(playlistID)
+		err = configHandler.UpdateStation(station)
+		if err != nil {
+			return err
+		}
 	}
 
 	var trackIDs []spotify.ID
@@ -147,11 +164,11 @@ func CreateSpotifyPlaylist(stationID string, store storage.Storage) error {
 		}
 	}
 
-	_, err = client.AddTracksToPlaylist(context.Background(), playlist.ID, trackIDs...)
+	_, err = client.AddTracksToPlaylist(context.Background(), playlistID, trackIDs...)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Playlist created: %s\n", playlistName)
+	fmt.Printf("Playlist updated: %s\n", station.Name)
 	return nil
 }

@@ -5,19 +5,24 @@ import (
 	"os/signal"
 	"time"
 
+	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
 	"radio-to-spotify/storage"
 
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type ScraperService struct {
-	Interval    time.Duration
-	stopScraper chan struct{}
+	Interval      time.Duration
+	stopScraper   chan struct{}
+	configHandler *config.ConfigHandler
+	storage       storage.Storage
+	logger        *logrus.Logger
 }
 
 func (s *ScraperService) Start() {
-	logger.Infof("Starting scraper service with interval %v", s.Interval)
+	s.logger.Infof("Starting scraper service with interval %v", s.Interval)
 	ticker := time.NewTicker(s.Interval)
 	for {
 		select {
@@ -31,24 +36,24 @@ func (s *ScraperService) Start() {
 }
 
 func (s *ScraperService) Stop() {
-	logger.Info("Stopping scraper service")
+	s.logger.Info("Stopping scraper service")
 	close(s.stopScraper)
 }
 
 func (s *ScraperService) scrape() {
-	logger.Debugf("Scraping now playing songs")
-	stations, err := scraper.FetchNowPlaying(stationFile, logger, "")
+	s.logger.Debugf("Scraping now playing songs")
+	stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, "")
 	if err != nil {
-		logger.Warnf("Error fetching now playing: %v", err)
+		s.logger.Warnf("Error fetching now playing: %v", err)
 		return
 	}
 
-	for _, stationSong := range stations {
-		err := store.StoreNowPlaying(stationSong.StationID, &stationSong.Song)
+	for i, station := range stations {
+		err := s.storage.StoreNowPlaying(station.ID, songs[i])
 		if err != nil {
-			logger.Errorf("Error storing now playing for station %s: %v", stationSong.StationID, err)
+			s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
 		} else {
-			logger.Debugf("Stored song for station %s: %s - %s", stationSong.StationID, stationSong.Song.Artist, stationSong.Song.Title)
+			s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
 		}
 	}
 }
@@ -68,6 +73,11 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 
+	configHandler, err := config.NewConfigHandler(stationFile)
+	if err != nil {
+		logger.Fatalf("Error loading config: %v", err)
+	}
+
 	store, err := storage.NewStorage(storageType, storagePath)
 	if err != nil {
 		logger.Fatalf("Error initializing storage: %v", err)
@@ -79,8 +89,11 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	}
 
 	scraperService := &ScraperService{
-		Interval:    1 * time.Minute, // Adjust the interval as needed
-		stopScraper: make(chan struct{}),
+		Interval:      1 * time.Minute, // Adjust the interval as needed
+		stopScraper:   make(chan struct{}),
+		configHandler: configHandler,
+		storage:       store,
+		logger:        logger,
 	}
 
 	go scraperService.Start()

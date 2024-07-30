@@ -1,11 +1,10 @@
 package cmd
 
 import (
-	"fmt"
+	"radio-to-spotify/config"
+	"radio-to-spotify/scraper"
 
 	"github.com/spf13/cobra"
-
-	"radio-to-spotify/scraper"
 )
 
 func init() {
@@ -14,19 +13,24 @@ func init() {
 
 var fetchCmd = &cobra.Command{
 	Use:   "fetch",
-	Short: "Fetch now playing songs from radio stations",
+	Short: "Fetch now playing songs for radio stations",
 	Run: func(cmd *cobra.Command, args []string) {
 		executeFetch()
 	},
 }
 
 func executeFetch() {
-	stationSongs, err := scraper.FetchNowPlaying(stationFile, logger, stationID)
+	configHandler, err := config.NewConfigHandler(stationFile)
+	if err != nil {
+		logger.Fatalf("Error loading config: %v", err)
+	}
+
+	stations, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
 	if err != nil {
 		logger.Fatalf("Error fetching now playing: %v", err)
 	}
 
-	for _, stationSong := range stationSongs {
-		fmt.Printf("Station: %s (%s) - Artist: %s, Title: %s\n", stationSong.Station, stationSong.StationID, stationSong.Song.Artist, stationSong.Song.Title)
+	for i, station := range stations {
+		logger.Infof("Station: %s, Song: %s - %s", station.Name, songs[i].Artist, songs[i].Title)
 	}
 }

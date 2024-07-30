@@ -7,71 +7,51 @@ import (
 	"regexp"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/html/charset"
 )
 
 type PlaintextScraper struct {
-	BaseScraper
-	regex *regexp.Regexp
+	*BaseScraper
+	Regex *regexp.Regexp
 }
 
-func NewPlaintextScraper(logger *logrus.Logger, url, regexPattern string) (*PlaintextScraper, error) {
-	compiledRegex, err := regexp.Compile(regexPattern)
+func NewPlaintextScraper(logger *logrus.Logger, URL string, regex string) (*PlaintextScraper, error) {
+	compiledRegex, err := regexp.Compile(regex)
 	if err != nil {
-		return nil, fmt.Errorf("error compiling regex pattern: %v", err)
+		return nil, err
 	}
 
 	return &PlaintextScraper{
-		BaseScraper: *NewBaseScraper(logger, url),
-		regex:       compiledRegex,
+		BaseScraper: NewBaseScraper(logger, URL),
+		Regex:       compiledRegex,
 	}, nil
 }
 
-func (p *PlaintextScraper) GetNowPlaying() (*Song, error) {
-	p.Logger.Debugf("Fetching plaintext now playing from URL: %s", p.BaseScraper.URL)
-	res, err := http.Get(p.BaseScraper.URL)
+func (s *PlaintextScraper) GetNowPlaying() (*Song, error) {
+	resp, err := http.Get(s.URL)
 	if err != nil {
-		p.Logger.Errorf("Error fetching plaintext now playing: %v", err)
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	if res.StatusCode != 200 {
-		p.Logger.Errorf("Received non-200 status code: %d", res.StatusCode)
-		return nil, err
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error fetching URL: %s, status code: %d", s.URL, resp.StatusCode)
 	}
 
-	reader, err := charset.NewReader(res.Body, res.Header.Get("Content-Type"))
-	if err != nil {
-		p.Logger.Errorf("Error creating reader for response body: %v", err)
-		return nil, err
-	}
-
-	scanner := bufio.NewScanner(reader)
-	scanner.Scan()
-	if err := scanner.Err(); err != nil {
-		p.Logger.Errorf("Error reading plaintext response: %v", err)
-		return nil, err
-	}
-
-	text := scanner.Text()
-	matches := p.regex.FindStringSubmatch(text)
-	if len(matches) == 0 {
-		return nil, fmt.Errorf("no matches found in plaintext response")
-	}
-
-	result := make(map[string]string)
-	for i, name := range p.regex.SubexpNames() {
-		if i != 0 && name != "" {
-			result[name] = matches[i]
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		line := scanner.Text()
+		matches := s.Regex.FindStringSubmatch(line)
+		if len(matches) == 3 {
+			return &Song{
+				Artist: matches[1],
+				Title:  matches[2],
+			}, nil
 		}
 	}
 
-	artist, artistOk := result["artist"]
-	title, titleOk := result["title"]
-	if !artistOk || !titleOk {
-		return nil, fmt.Errorf("artist or title not found in plaintext response")
+	if err := scanner.Err(); err != nil {
+		return nil, err
 	}
 
-	return &Song{Artist: artist, Title: title}, nil
+	return nil, fmt.Errorf("no matches found")
 }

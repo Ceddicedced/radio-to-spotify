@@ -9,45 +9,40 @@ import (
 )
 
 type HTMLScraper struct {
-	BaseScraper
-	artistTag string
-	titleTag  string
+	*BaseScraper
+	ArtistTag string
+	TitleTag  string
 }
 
-func NewHTMLScraper(logger *logrus.Logger, url, artistTag, titleTag string) *HTMLScraper {
+func NewHTMLScraper(logger *logrus.Logger, URL string, artistTag string, titleTag string) *HTMLScraper {
 	return &HTMLScraper{
-		BaseScraper: *NewBaseScraper(logger, url),
-		artistTag:   artistTag,
-		titleTag:    titleTag,
+		BaseScraper: NewBaseScraper(logger, URL),
+		ArtistTag:   artistTag,
+		TitleTag:    titleTag,
 	}
 }
 
-func (h *HTMLScraper) GetNowPlaying() (*Song, error) {
-	h.Logger.Debugf("Fetching HTML now playing from URL: %s", h.BaseScraper.URL)
-	res, err := http.Get(h.BaseScraper.URL)
+func (s *HTMLScraper) GetNowPlaying() (*Song, error) {
+	resp, err := http.Get(s.URL)
 	if err != nil {
-		h.Logger.Errorf("Error fetching HTML now playing: %v", err)
 		return nil, err
 	}
-	defer res.Body.Close()
+	defer resp.Body.Close()
 
-	if res.StatusCode != 200 {
-		h.Logger.Errorf("Received non-200 status code: %d", res.StatusCode)
-		return nil, err
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("error fetching URL: %s, status code: %d", s.URL, resp.StatusCode)
 	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		h.Logger.Errorf("Error parsing HTML document: %v", err)
 		return nil, err
 	}
 
-	artist := doc.Find(h.artistTag).First().Text()
-	title := doc.Find(h.titleTag).First().Text()
+	artist := doc.Find(s.ArtistTag).Text()
+	title := doc.Find(s.TitleTag).Text()
 
-	if artist == "" || title == "" {
-		return nil, fmt.Errorf("could not find now playing song details")
-	}
-
-	return &Song{Artist: artist, Title: title}, nil
+	return &Song{
+		Artist: artist,
+		Title:  title,
+	}, nil
 }
