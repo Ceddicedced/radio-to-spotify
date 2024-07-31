@@ -7,7 +7,7 @@ RUN go get -d -v ./...
 RUN go build -v -o /app main.go
 
 #final stage
-FROM golang:latest
+FROM debian:stable-slim
 RUN apt update && apt install -y --no-install-recommends ca-certificates
 WORKDIR /app
 COPY --from=builder /app .
