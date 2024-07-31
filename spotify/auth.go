@@ -14,31 +14,18 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// Load environment variables from .env file
-func init() {
+var (
+	authenticator *spotifyauth.Authenticator
+	tokenFile     = ".token"
+)
+
+// Load environment variables from .env file if it exists
+func loadEnv() {
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Println("Error loading .env file")
 	}
 }
-
-var (
-	clientID      = getEnv("SPOTIFY_ID", "")
-	clientSecret  = getEnv("SPOTIFY_SECRET", "")
-	redirectURL   = getEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
-	port          = getEnv("SPOTIFY_PORT", "8080")
-	authenticator = spotifyauth.New(
-		spotifyauth.WithClientID(clientID),
-		spotifyauth.WithClientSecret(clientSecret),
-		spotifyauth.WithRedirectURL(redirectURL),
-		spotifyauth.WithScopes(
-			spotifyauth.ScopeUserReadPrivate,
-			spotifyauth.ScopePlaylistModifyPublic,
-			spotifyauth.ScopePlaylistModifyPrivate,
-		),
-	)
-	tokenFile = ".token"
-)
 
 // getEnv reads an environment variable or returns a default value
 func getEnv(key, defaultValue string) string {
@@ -51,14 +38,35 @@ func getEnv(key, defaultValue string) string {
 	return defaultValue
 }
 
+// initializeAuthenticator initializes the Spotify authenticator
+func initializeAuthenticator() {
+	clientID := getEnv("SPOTIFY_ID", "")
+	clientSecret := getEnv("SPOTIFY_SECRET", "")
+	redirectURL := getEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
+
+	authenticator = spotifyauth.New(
+		spotifyauth.WithClientID(clientID),
+		spotifyauth.WithClientSecret(clientSecret),
+		spotifyauth.WithRedirectURL(redirectURL),
+		spotifyauth.WithScopes(
+			spotifyauth.ScopeUserReadPrivate,
+			spotifyauth.ScopePlaylistModifyPublic,
+			spotifyauth.ScopePlaylistModifyPrivate,
+		),
+	)
+}
+
 func getAuthToken() (*oauth2.Token, error) {
+	loadEnv()                 // Load environment variables
+	initializeAuthenticator() // Initialize authenticator
+
 	token, err := loadTokenFromFile(tokenFile)
 	if err == nil && token.Valid() {
 		return token, nil
 	}
 
 	http.HandleFunc("/callback", completeAuth)
-	go http.ListenAndServe(":"+port, nil)
+	go http.ListenAndServe(":"+getEnv("SPOTIFY_PORT", "8080"), nil)
 
 	url := authenticator.AuthURL("state-token")
 	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
