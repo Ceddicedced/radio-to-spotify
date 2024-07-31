@@ -79,6 +79,15 @@
       "artistKey": ["data", "artist"],
       "titleKey": ["data", "title"],
       "playlistID" :"3pwqDyaTtBTzEvR0OW8d8e"
+    },
+    {
+      "id": "jamfm",
+      "name": "Jam FM",
+      "url": "https://www.jam.fm/services/program-info/live/jam",
+      "type": "json",
+      "artistKey": [1, "playHistories", 0, "track", "artist"],
+      "titleKey": [1, "playHistories", 0, "track", "title"],
+      "playlistID": "6UXLkqhSWFzigYD0b8qeQB"
     }
   ]
 }
