@@ -6,7 +6,8 @@
       "url": "https://www.fritz.de/include/frz/nowonair/now_on_air.html",
       "type": "html",
       "artistTag": "p.artist",
-      "titleTag": "p.songtitle"
+      "titleTag": "p.songtitle",
+      "playlistID": "0ft1uL9ebhyess1e0gFCPV"
     },
     {
       "id": "njoy",
@@ -14,7 +15,8 @@
       "url": "https://www.n-joy.de/public/radioplaylists/njoy.json",
       "type": "json",
       "artistKey": ["song_now_interpret"],
-      "titleKey": ["song_now_title"]
+      "titleKey": ["song_now_title"],
+      "playlistID": "6L8fdx2VxhepDfqlOIObe7"
     },
     {
       "id": "bollerwagen",
@@ -22,7 +24,8 @@
       "url": "https://www.ffn.de/fileadmin/content/playlist-xml/radiobollerwagen.json",
       "type": "json",
       "artistKey": ["songs", 0, "artist"],
-      "titleKey": ["songs", 0, "title"]
+      "titleKey": ["songs", 0, "title"],
+      "playlistID": "2VCbbl5tTKmYitGGayLkzZ"
     },
     {
       "id": "1046rtl",
@@ -30,7 +33,8 @@
       "url": "https://www.104.6rtl.com/services/program-info/live/rtl",
       "type": "json",
       "artistKey": [4, "playHistories", 0, "track", "artist"],
-      "titleKey": [4, "playHistories", 0, "track", "title"]
+      "titleKey": [4, "playHistories", 0, "track", "title"],
+      "playlistID": "5HMQ8doHZcUrzs90CfweBr"
     },
     {
       "id": "nrjdigital",
@@ -38,7 +42,8 @@
       "url": "https://api.nrjnet.de/webradio/nrj-energy-de/current/national.json",
       "type": "json",
       "artistKey": ["artist"],
-      "titleKey": ["title"]
+      "titleKey": ["title"],
+      "playlistID": "64i7XRm4kdbhH4stSpnxaJ"
     },
     {
       "id": "nrjberlin",
@@ -46,14 +51,16 @@
       "url": "https://api.nrjnet.de/webradio/nrj-energy-de/current/berlin.json",
       "type": "json",
       "artistKey": ["artist"],
-      "titleKey": ["title"]
+      "titleKey": ["title"],
+      "playlistID": "1sDhGJ5gGKDFD4QzB7q2i5"
     },
     {
       "id": "1live",
       "name": "WDR 1LIVE",
       "url": "https://www.wdr.de/radio/radiotext/streamtitle_1live.txt",
       "type": "plaintext",
-      "regex": "(?P<artist>.+?) - (?P<title>.+)"
+      "regex": "(?P<artist>.+?) - (?P<title>.+)",
+      "playlistID": "3yJEj5bAmhc6bFREajJu6t"
     },
     {
       "id": "rs2",
@@ -70,7 +77,8 @@
       "url": "https://www.technobase.fm/index.php?option=com_broadcast&task=current.playhistory&format=json&station=technobase.fm",
       "type": "json",
       "artistKey": ["data", "artist"],
-      "titleKey": ["data", "title"]
+      "titleKey": ["data", "title"],
+      "playlistID" :"3pwqDyaTtBTzEvR0OW8d8e"
     }
   ]
 }
