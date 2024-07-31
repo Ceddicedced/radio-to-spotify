@@ -62,6 +62,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) erro
 	if err != nil {
 		return err
 	}
+	s.logger.Infof("Found %d songs for station: %s with time range: %s", len(songs), station.Name, timeRange)
 
 	if station.PlaylistID == "" {
 		return fmt.Errorf("no playlist ID found for station: %s", station.Name)
@@ -80,6 +81,8 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) erro
 
 func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []scraper.Song) error {
 	var trackIDs []spotify.ID
+
+	// TODO Make this more efficient by batching the search requests ? concurrent
 	for _, song := range songs {
 		searchResults, err := s.client.Search(context.Background(), fmt.Sprintf("%s %s", song.Artist, song.Title), spotify.SearchTypeTrack)
 		if err != nil {
