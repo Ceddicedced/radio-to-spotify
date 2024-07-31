@@ -23,9 +23,6 @@ func getEnv(key, defaultValue string) string {
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
-	if defaultValue == "" {
-		panic(fmt.Sprintf("Environment variable %s is required", key))
-	}
 	return defaultValue
 }
 
@@ -34,6 +31,11 @@ func initializeAuthenticator() {
 	clientID := getEnv("SPOTIFY_ID", "")
 	clientSecret := getEnv("SPOTIFY_SECRET", "")
 	redirectURL := getEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
+
+	if clientID == "" || clientSecret == "" {
+		fmt.Println("Please set SPOTIFY_ID and SPOTIFY_SECRET environment variables")
+		os.Exit(1)
+	}
 
 	authenticator = spotifyauth.New(
 		spotifyauth.WithClientID(clientID),

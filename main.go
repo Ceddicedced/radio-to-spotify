@@ -18,7 +18,7 @@ func main() {
 // Load environment variables from .env file if it exists
 func loadEnv() {
 	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
+	if err != nil && err.Error() != "open .env: no such file or directory" {
+		fmt.Println("Error loading .env file: ", err)
 	}
 }
