@@ -90,6 +90,43 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 		}
 	}
 
-	err := s.client.ReplacePlaylistTracks(context.Background(), playlistID, trackIDs...)
-	return err
+	s.logger.Debugf("Replacing playlist %s with %d tracks", playlistID, len(trackIDs))
+
+	// Replace the entire playlist with the new tracks
+	if len(trackIDs) > 100 {
+		err := s.replacePlaylistTracksInBatches(playlistID, trackIDs)
+		if err != nil {
+			return err
+		}
+	} else {
+		err := s.client.ReplacePlaylistTracks(context.Background(), playlistID, trackIDs...)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *SpotifyService) replacePlaylistTracksInBatches(playlistID spotify.ID, trackIDs []spotify.ID) error {
+	// Clear the playlist first
+	err := s.client.ReplacePlaylistTracks(context.Background(), playlistID)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(trackIDs); i += 100 {
+		end := i + 100
+		if end > len(trackIDs) {
+			end = len(trackIDs)
+		}
+		batch := trackIDs[i:end]
+		_, err := s.client.AddTracksToPlaylist(context.Background(), playlistID, batch...)
+		if err != nil {
+			return err
+		}
+		s.logger.Debugf("Added batch of %d tracks to playlist %s", len(batch), playlistID)
+	}
+
+	return nil
 }
