@@ -67,7 +67,7 @@ func (s *ScraperService) scrape() {
 		}
 
 		if !noPlaylist {
-			err = s.spotify.UpdateSpotifyPlaylist(s.configHandler, station.ID, s.storage)
+			err = s.spotify.UpdateSpotifyPlaylist(station.ID)
 			if err != nil {
 				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
 			}
@@ -110,7 +110,7 @@ func runDaemon(cmd *cobra.Command, args []string) {
 
 	var spotifyService *spotify.SpotifyService
 	if !noPlaylist {
-		spotifyService, err = spotify.NewSpotifyService(logger)
+		spotifyService, err = spotify.NewSpotifyService(logger, configHandler, store)
 		if err != nil {
 			logger.Fatalf("Error initializing Spotify service: %v", err)
 		}

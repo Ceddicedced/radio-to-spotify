@@ -36,13 +36,30 @@ func executePlaylist() {
 		logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	spotifyService, err := spotify.NewSpotifyService(logger)
+	spotifyService, err := spotify.NewSpotifyService(logger, configHandler, store)
 	if err != nil {
 		logger.Fatalf("Error initializing Spotify service: %v", err)
 	}
 
-	err = spotifyService.UpdateSpotifyPlaylist(configHandler, stationID, store)
+	if stationID == "" {
+		configStations := configHandler.GetAllStations()
+		if len(configStations) == 0 {
+			logger.Fatalf("No stations found in config")
+		}
+		for _, station := range configStations {
+			updateStation(spotifyService, station.ID)
+		}
+	} else {
+		updateStation(spotifyService, stationID)
+	}
+
+}
+
+func updateStation(spotifyService *spotify.SpotifyService, stationID string) {
+	err := spotifyService.UpdateSpotifyPlaylist(stationID)
 	if err != nil {
-		logger.Fatalf("Error updating Spotify playlist: %v", err)
+		logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
+	} else {
+		logger.Infof("Updated Spotify playlist for station: %s", stationID)
 	}
 }

@@ -12,11 +12,13 @@ import (
 )
 
 type SpotifyService struct {
-	client *spotify.Client
-	Logger *logrus.Logger
+	client        *spotify.Client
+	configHandler *config.ConfigHandler
+	store         storage.Storage
+	logger        *logrus.Logger
 }
 
-func NewSpotifyService(logger *logrus.Logger) (*SpotifyService, error) {
+func NewSpotifyService(logger *logrus.Logger, configHandler *config.ConfigHandler, store storage.Storage) (*SpotifyService, error) {
 	client, err := getClient()
 	if err != nil {
 		return nil, err
@@ -26,21 +28,26 @@ func NewSpotifyService(logger *logrus.Logger) (*SpotifyService, error) {
 		return nil, err
 	}
 	logger.Infof("Logged in as: %s", user.DisplayName)
-	return &SpotifyService{client: client, Logger: logger}, nil
+	return &SpotifyService{
+		client:        client,
+		configHandler: configHandler,
+		store:         store,
+		logger:        logger,
+	}, nil
 }
 
-func (s *SpotifyService) UpdateSpotifyPlaylist(configHandler *config.ConfigHandler, stationID string, store storage.Storage) error {
+func (s *SpotifyService) UpdateSpotifyPlaylist(stationID string) error {
 	_, err := s.client.CurrentUser(context.Background())
 	if err != nil {
 		return err
 	}
 
-	station, err := configHandler.GetStationByID(stationID)
+	station, err := s.configHandler.GetStationByID(stationID)
 	if err != nil {
 		return err
 	}
 
-	songs, err := store.GetLastHourSongs(stationID)
+	songs, err := s.store.GetLastHourSongs(stationID)
 	if err != nil {
 		return err
 	}
@@ -56,7 +63,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(configHandler *config.ConfigHandl
 		return err
 	}
 
-	s.Logger.Debugf("Updated Spotify playlist for station: %s", station.Name)
+	s.logger.Debugf("Updated Spotify playlist for station: %s", station.Name)
 	return nil
 }
 
