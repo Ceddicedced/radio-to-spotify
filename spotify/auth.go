@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
@@ -18,14 +17,6 @@ var (
 	authenticator *spotifyauth.Authenticator
 	tokenFile     = ".token"
 )
-
-// Load environment variables from .env file if it exists
-func loadEnv() {
-	err := godotenv.Load()
-	if err != nil {
-		fmt.Println("Error loading .env file")
-	}
-}
 
 // getEnv reads an environment variable or returns a default value
 func getEnv(key, defaultValue string) string {
@@ -57,7 +48,6 @@ func initializeAuthenticator() {
 }
 
 func getAuthToken() (*oauth2.Token, error) {
-	loadEnv()                 // Load environment variables
 	initializeAuthenticator() // Initialize authenticator
 
 	token, err := loadTokenFromFile(tokenFile)
