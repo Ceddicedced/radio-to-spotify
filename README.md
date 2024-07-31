@@ -1,6 +1,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ceddicedced/radio-to-spotify/go.yml?style=for-the-badge&link=https%3A%2F%2Fgithub.com%2FCeddicedced%2Fradio-to-spotify%2Factions%2Fworkflows%2Fgo.yml)
 ![GitHub License](https://img.shields.io/github/license/ceddicedced/radio-to-spotify?style=for-the-badge&link=https%3A%2F%2Fgithub.com%2FCeddicedced%2Fradio-to-spotify%2Fblob%2Fmain%2FLICENSE)
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ceddicedced/radio-to-spotify?style=for-the-badge)
+![Docker Image Size](https://img.shields.io/docker/image-size/ceddicedced/radiotospotify?style=for-the-badge&link=https%3A%2F%2Fhub.docker.com%2Fr%2Fceddicedced%2Fradiotospotify)
 # Radio to Spotify 🎵
 
 `radio-to-spotify` is a Go-based tool that scrapes now-playing songs from online radio stations and creates Spotify playlists based on the last hour of songs played by a station. It can run as a daemon to periodically fetch and store the now-playing data.
