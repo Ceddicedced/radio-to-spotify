@@ -21,6 +21,8 @@ func NewStorage(storageType, storagePath string) (Storage, error) {
 		return NewFileStorage(storagePath)
 	case "sqlite":
 		return NewSQLiteStorage(storagePath)
+	case "postgres":
+		return NewPostgreSQLStorage(storagePath) // postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full
 	default:
 		return nil, fmt.Errorf("unsupported storage type: %s", storageType)
 	}
