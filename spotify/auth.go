@@ -8,16 +8,25 @@ import (
 	"os"
 	"time"
 
+	"github.com/joho/godotenv"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
+// Load environment variables from .env file
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println("Error loading .env file")
+	}
+}
+
 var (
-	clientID      = os.Getenv("SPOTIFY_ID")
-	clientSecret  = os.Getenv("SPOTIFY_SECRET")
-	redirectURL   = os.Getenv("SPOTIFY_REDIRECT_URL")
-	port          = os.Getenv("SPOTIFY_PORT")
+	clientID      = getEnv("SPOTIFY_ID", "")
+	clientSecret  = getEnv("SPOTIFY_SECRET", "")
+	redirectURL   = getEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
+	port          = getEnv("SPOTIFY_PORT", "8080")
 	authenticator = spotifyauth.New(
 		spotifyauth.WithClientID(clientID),
 		spotifyauth.WithClientSecret(clientSecret),
@@ -30,6 +39,17 @@ var (
 	)
 	tokenFile = ".token"
 )
+
+// getEnv reads an environment variable or returns a default value
+func getEnv(key, defaultValue string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	if defaultValue == "" {
+		panic(fmt.Sprintf("Environment variable %s is required", key))
+	}
+	return defaultValue
+}
 
 func getAuthToken() (*oauth2.Token, error) {
 	token, err := loadTokenFromFile(tokenFile)
