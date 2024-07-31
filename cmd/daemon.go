@@ -51,7 +51,7 @@ func (s *ScraperService) Stop() {
 
 func (s *ScraperService) scrape() {
 	s.logger.Debugf("Scraping now playing songs")
-	var storedCount, playlistCount, stationCount int
+	var storedCount, playlistCount, songCount int
 
 	if !noStore {
 		stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
@@ -59,7 +59,7 @@ func (s *ScraperService) scrape() {
 			s.logger.Warnf("Error fetching now playing: %v", err)
 			return
 		}
-		stationCount = len(stations)
+		songCount = len(songs)
 
 		for i, station := range stations {
 			err := s.storage.StoreNowPlaying(station.ID, songs[i])
@@ -90,7 +90,7 @@ func (s *ScraperService) scrape() {
 
 	}
 
-	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", stationCount, storedCount, playlistCount)
+	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", songCount, storedCount, playlistCount)
 }
 
 var daemonCmd = &cobra.Command{
