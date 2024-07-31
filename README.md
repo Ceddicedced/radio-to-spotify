@@ -1,5 +1,6 @@
-[![Go](https://github.com/Ceddicedced/radio-to-spotify/actions/workflows/go.yml/badge.svg)](https://github.com/Ceddicedced/radio-to-spotify/actions/workflows/go.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ceddicedced/radio-to-spotify/go.yml?style=for-the-badge&link=https%3A%2F%2Fgithub.com%2FCeddicedced%2Fradio-to-spotify%2Factions%2Fworkflows%2Fgo.yml)
+![GitHub License](https://img.shields.io/github/license/ceddicedced/radio-to-spotify?style=for-the-badge&link=https%3A%2F%2Fgithub.com%2FCeddicedced%2Fradio-to-spotify%2Fblob%2Fmain%2FLICENSE)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/ceddicedced/radio-to-spotify?style=for-the-badge)
 # Radio to Spotify 🎵
 
 `radio-to-spotify` is a Go-based tool that scrapes now-playing songs from online radio stations and creates Spotify playlists based on the last hour of songs played by a station. It can run as a daemon to periodically fetch and store the now-playing data.
@@ -40,7 +41,8 @@ Create a `stations.json` file to define the radio stations to scrape:
       "url": "https://www.fritz.de/include/frz/nowonair/now_on_air.html",
       "type": "html",
       "artistTag": "p.artist",
-      "titleTag": "p.songtitle"
+      "titleTag": "p.songtitle",
+      "playlistID": "37i9dQZF1DXbYM3nMM0oPk"
     },
     {
       "id": "njoy",
@@ -48,7 +50,8 @@ Create a `stations.json` file to define the radio stations to scrape:
       "url": "https://www.n-joy.de/public/radioplaylists/njoy.json",
       "type": "json",
       "artistKey": ["song_now_interpret"],
-      "titleKey": ["song_now_title"]
+      "titleKey": ["song_now_title"],
+      "playlistID": "37i9dQZF1DXbYM3nMM0oPk"
     }
   ]
 }
