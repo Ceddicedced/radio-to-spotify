@@ -18,6 +18,7 @@ var playlistCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(playlistCmd)
+	playlistCmd.Flags().StringVar(&playlistRange, "playlist-range", "lasthour", "Time range for playlist update (lasthour, lastday, lastweek)")
 }
 
 func executePlaylist() {
@@ -56,7 +57,7 @@ func executePlaylist() {
 }
 
 func updateStation(spotifyService *spotify.SpotifyService, stationID string) {
-	err := spotifyService.UpdateSpotifyPlaylist(stationID)
+	err := spotifyService.UpdateSpotifyPlaylist(stationID, playlistRange)
 	if err != nil {
 		logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
 	} else {

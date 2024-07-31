@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"radio-to-spotify/scraper"
 
@@ -47,7 +48,6 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 }
 
 func (s *SQLiteStorage) initSQLite() error {
-	// No need to create a general now_playing table since each station will have its own table
 	return nil
 }
 
@@ -148,14 +148,14 @@ func (s *SQLiteStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
 	return song, nil
 }
 
-func (s *SQLiteStorage) GetLastHourSongs(stationID string) ([]scraper.Song, error) {
+func (s *SQLiteStorage) GetSongsSince(stationID string, sinceTime time.Time) ([]scraper.Song, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if _, exists := s.songs[stationID]; !exists {
 		return nil, errors.New("no song found for station")
 	}
-	rows, err := s.db.Query(fmt.Sprintf(`SELECT artist, title FROM station_%s WHERE timestamp > datetime('now', '-1 hour')`, stationID))
+	rows, err := s.db.Query(fmt.Sprintf(`SELECT artist, title FROM station_%s WHERE timestamp > ?`, stationID), sinceTime.Format(time.RFC3339))
 	if err != nil {
 		return nil, err
 	}

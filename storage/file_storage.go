@@ -115,7 +115,7 @@ func (s *FileStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {
 	return &lastSongs[len(lastSongs)-1].Song, nil
 }
 
-func (s *FileStorage) GetLastHourSongs(stationID string) ([]scraper.Song, error) {
+func (s *FileStorage) GetSongsSince(stationID string, sinceTime time.Time) ([]scraper.Song, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -125,9 +125,8 @@ func (s *FileStorage) GetLastHourSongs(stationID string) ([]scraper.Song, error)
 	}
 
 	var songs []scraper.Song
-	oneHourAgo := time.Now().Add(-1 * time.Hour)
 	for _, song := range lastSongs {
-		if song.Timestamp.After(oneHourAgo) {
+		if song.Timestamp.After(sinceTime) {
 			songs = append(songs, song.Song)
 		}
 	}

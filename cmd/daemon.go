@@ -15,9 +15,10 @@ import (
 )
 
 var (
-	noStore    bool
-	noPlaylist bool
-	interval   time.Duration
+	noStore       bool
+	noPlaylist    bool
+	interval      time.Duration
+	playlistRange string
 )
 
 type ScraperService struct {
@@ -50,15 +51,17 @@ func (s *ScraperService) Stop() {
 
 func (s *ScraperService) scrape() {
 	s.logger.Debugf("Scraping now playing songs")
-	stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
-	if err != nil {
-		s.logger.Warnf("Error fetching now playing: %v", err)
-		return
-	}
+	var storedCount, playlistCount, stationCount int
 
-	var storedCount, playlistCount int
-	for i, station := range stations {
-		if !noStore {
+	if !noStore {
+		stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
+		if err != nil {
+			s.logger.Warnf("Error fetching now playing: %v", err)
+			return
+		}
+		stationCount = len(stations)
+
+		for i, station := range stations {
 			err := s.storage.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
 				s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
@@ -67,20 +70,27 @@ func (s *ScraperService) scrape() {
 				storedCount++
 			}
 		}
+	}
 
-		if !noPlaylist {
-			err = s.spotify.UpdateSpotifyPlaylist(station.ID)
+	if !noPlaylist {
+		stations, err := s.storage.GetAllStations()
+		if err != nil {
+			s.logger.Errorf("Error getting all stations: %v", err)
+			return
+		}
+
+		for _, stationID := range stations {
+			err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
 			if err != nil {
-				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
+				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
 			} else {
-				s.logger.Debugf("Updated Spotify playlist for station: %s", station.Name)
 				playlistCount++
 			}
 		}
 
 	}
 
-	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", len(stations), storedCount, playlistCount)
+	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", stationCount, storedCount, playlistCount)
 }
 
 var daemonCmd = &cobra.Command{
@@ -93,6 +103,7 @@ func init() {
 	daemonCmd.Flags().BoolVar(&noStore, "no-store", false, "Run without storing the now playing songs")
 	daemonCmd.Flags().BoolVar(&noPlaylist, "no-playlist", false, "Run without updating the Spotify playlist")
 	daemonCmd.Flags().DurationVar(&interval, "interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
+	daemonCmd.Flags().StringVar(&playlistRange, "playlist-range", "lasthour", "Time range for playlist update (lasthour, lastday, lastweek)")
 	rootCmd.AddCommand(daemonCmd)
 }
 

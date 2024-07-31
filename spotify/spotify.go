@@ -6,6 +6,7 @@ import (
 	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
 	"radio-to-spotify/storage"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify/v2"
@@ -36,7 +37,7 @@ func NewSpotifyService(logger *logrus.Logger, configHandler *config.ConfigHandle
 	}, nil
 }
 
-func (s *SpotifyService) UpdateSpotifyPlaylist(stationID string) error {
+func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) error {
 	_, err := s.client.CurrentUser(context.Background())
 	if err != nil {
 		return err
@@ -47,7 +48,17 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID string) error {
 		return err
 	}
 
-	songs, err := s.store.GetLastHourSongs(stationID)
+	var songs []scraper.Song
+	switch timeRange {
+	case "lasthour":
+		songs, err = s.store.GetSongsSince(stationID, time.Now().Add(-1*time.Hour))
+	case "lastday":
+		songs, err = s.store.GetSongsSince(stationID, time.Now().Add(-24*time.Hour))
+	case "lastweek":
+		songs, err = s.store.GetSongsSince(stationID, time.Now().Add(-7*24*time.Hour))
+	default:
+		return fmt.Errorf("invalid time range: %s", timeRange)
+	}
 	if err != nil {
 		return err
 	}
@@ -63,7 +74,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID string) error {
 		return err
 	}
 
-	s.logger.Debugf("Updated Spotify playlist for station: %s", station.Name)
+	s.logger.Debugf("Updated Spotify playlist for station: %s with time range: %s", station.Name, timeRange)
 	return nil
 }
 
