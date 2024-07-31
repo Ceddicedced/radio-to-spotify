@@ -56,6 +56,7 @@ func (s *ScraperService) scrape() {
 		return
 	}
 
+	var storedCount, playlistCount int
 	for i, station := range stations {
 		if !noStore {
 			err := s.storage.StoreNowPlaying(station.ID, songs[i])
@@ -63,6 +64,7 @@ func (s *ScraperService) scrape() {
 				s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
 			} else {
 				s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
+				storedCount++
 			}
 		}
 
@@ -70,9 +72,15 @@ func (s *ScraperService) scrape() {
 			err = s.spotify.UpdateSpotifyPlaylist(station.ID)
 			if err != nil {
 				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", station.ID, err)
+			} else {
+				s.logger.Debugf("Updated Spotify playlist for station: %s", station.Name)
+				playlistCount++
 			}
 		}
+
 	}
+
+	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", len(stations), storedCount, playlistCount)
 }
 
 var daemonCmd = &cobra.Command{
