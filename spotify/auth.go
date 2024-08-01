@@ -127,6 +127,6 @@ func getClient() (*spotify.Client, error) {
 		return nil, err
 	}
 
-	client := spotify.New(authenticator.Client(context.Background(), token))
+	client := spotify.New(authenticator.Client(context.Background(), token), spotify.WithRetry(true))
 	return client, nil
 }
