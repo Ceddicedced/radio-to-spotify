@@ -155,7 +155,7 @@ func (s *SQLiteStorage) GetSongsSince(stationID string, sinceTime time.Time) ([]
 	if _, exists := s.songs[stationID]; !exists {
 		return nil, errors.New("no song found for station")
 	}
-	rows, err := s.db.Query(fmt.Sprintf(`SELECT artist, title FROM station_%s WHERE timestamp > ?`, stationID), sinceTime.Format(time.RFC3339))
+	rows, err := s.db.Query(fmt.Sprintf(`SELECT artist, title FROM station_%s WHERE timestamp > ?`, stationID), sinceTime.Format("2006-01-02 15:04:05"))
 	if err != nil {
 		return nil, err
 	}
