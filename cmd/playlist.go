@@ -18,7 +18,7 @@ var playlistCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(playlistCmd)
-	playlistCmd.Flags().StringVar(&playlistRange, "playlist-range", "lasthour", "Time range for playlist update (lasthour, lastday, lastweek)")
+	playlistCmd.Flags().StringVar(&playlistRange, "playlist-range", "lastday", "Time range for playlist update (lasthour, lastday, lastweek)")
 }
 
 func executePlaylist() {
