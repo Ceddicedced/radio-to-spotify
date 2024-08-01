@@ -88,6 +88,15 @@
       "artistKey": [1, "playHistories", 0, "track", "artist"],
       "titleKey": [1, "playHistories", 0, "track", "title"],
       "playlistID": "6UXLkqhSWFzigYD0b8qeQB"
+    },
+    {
+      "id": "radio1",
+      "name": "Radio Eins",
+      "url": "https://www.radioeins.de/include/rad/nowonair/now_on_air.html",
+      "type": "html",
+      "artistTag": "p.artist",
+      "titleTag": "p.songtitle",
+      "playlistID": "2S41FhYMM5TDT3bL8XYWEK"
     }
   ]
 }
