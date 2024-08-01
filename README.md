@@ -63,24 +63,32 @@ Create a `stations.json` file to define the radio stations to scrape:
 
 ```json
 {
-  "stations": [
+  [
     {
-      "id": "radiofritz",
-      "name": "Radio Fritz",
-      "url": "https://www.fritz.de/include/frz/nowonair/now_on_air.html",
+      "id": "1live",
+      "name": "WDR 1LIVE",
+      "url": "https://www.wdr.de/radio/radiotext/streamtitle_1live.txt",
+      "type": "plaintext",
+      "regex": "(?P<artist>.+?) - (?P<title>.+)",
+      "playlistID": "3yJEj5bAmhc6bFREajJu6t"
+    },
+    {
+      "id": "rs2",
+      "name": "94.3 rs2",
+      "url": "https://iris-rs2.loverad.io/flow.json?station=7",
+      "type": "json",
+      "artistKey": ["result", "entry", 0, "song", "entry", 0, "artist", "entry", 0, "name"],
+      "titleKey": ["result", "entry", 0, "song", "entry", 0, "title"],
+      "playlistID" :"4v8AVb5aOixKbR2NjDZuLq"
+    },
+    {
+      "id": "radio1",
+      "name": "Radio Eins",
+      "url": "https://www.radioeins.de/include/rad/nowonair/now_on_air.html",
       "type": "html",
       "artistTag": "p.artist",
       "titleTag": "p.songtitle",
-      "playlistID": "37i9dQZF1DXbYM3nMM0oPk"
-    },
-    {
-      "id": "njoy",
-      "name": "N-JOY",
-      "url": "https://www.n-joy.de/public/radioplaylists/njoy.json",
-      "type": "json",
-      "artistKey": ["song_now_interpret"],
-      "titleKey": ["song_now_title"],
-      "playlistID": "37i9dQZF1DXbYM3nMM0oPk"
+      "playlistID": "2S41FhYMM5TDT3bL8XYWEK"
     }
   ]
 }
