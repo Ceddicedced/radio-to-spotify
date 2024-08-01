@@ -34,7 +34,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "main.go",
-            "args": ["playlist","--station","rs2"]
+            "args": ["playlist","--station","bollerwagen","--playlist-range" ,"lasthour"]
         }
     ]
 }
