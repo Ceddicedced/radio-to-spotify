@@ -6,22 +6,48 @@
 
 `radio-to-spotify` is a Go-based tool that scrapes now-playing songs from online radio stations and creates Spotify playlists based on the last hour of songs played by a station. It can run as a daemon to periodically fetch and store the now-playing data.
 
+## Quick Start
+```sh
+docker run -v --rm -it ceddicedced/radiotospotify
+```
+
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+  - [Prerequisites](#prerequisites)
+  - [Clone the Repository](#clone-the-repository)
+  - [Build the Project](#build-the-project)
+- [Configuration](#configuration)
+  - [Station Configuration](#station-configuration)
+  - [Environment Variables](#environment-variables)
+- [Usage](#usage)
+  - [Fetch Now Playing](#fetch-now-playing)
+  - [Store Now Playing](#store-now-playing)
+  - [Create Spotify Playlist](#create-spotify-playlist)
+  - [Run as a Daemon](#run-as-a-daemon)
+- [Running with Docker](#running-with-docker)
+- [Contributing](#contributing)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
+- [Contact](#contact)
+
 ## Features
-- Fetch now-playing songs from various radio stations
-- Store fetched songs in a file or SQLite database
-- Create Spotify playlists based on the stored songs
-- Run as a daemon to periodically fetch and store songs
+- **Fetch Now-Playing Songs**: Scrape current songs playing on various radio stations.
+- **Store Fetched Songs**: Store songs in a file, SQLite, or PostgreSQL database.
+- **Create Spotify Playlists**: Generate Spotify playlists based on stored songs.
+- **Run as a Daemon**: Periodically fetch and store songs.
 
 ## Installation
 
 ### Prerequisites
 - [Go](https://golang.org/doc/install) (version 1.16+)
 - [SQLite](https://www.sqlite.org/index.html) (if using SQLite storage)
+- [PostgreSQL](https://www.postgresql.org/) (if using PostgreSQL storage)
 - [Spotify Developer Account](https://developer.spotify.com/)
 
 ### Clone the Repository
 ```sh
-git clone https://github.com/yourusername/radio-to-spotify.git
+git clone https://github.com/ceddicedced/radio-to-spotify.git
 cd radio-to-spotify
 ```
 
@@ -32,7 +58,9 @@ go build -o radio-to-spotify main.go
 
 ## Configuration
 
+### Station Configuration
 Create a `stations.json` file to define the radio stations to scrape:
+
 ```json
 {
   "stations": [
@@ -57,43 +85,69 @@ Create a `stations.json` file to define the radio stations to scrape:
   ]
 }
 ```
+### Station Configuration Fields
+- `id`: Unique identifier for the station.
+- `name`: Name of the station.
+- `url`: URL to scrape the now-playing songs.
+- `type`: Type of response (html or json or plaintext).
+- `artistTag`: HTML tag for the artist name (html type).
+- `titleTag`: HTML tag for the song title (html type).
+- `artistKey`: JSON key for the artist name (json type).
+- `regex`: Regular expression to extract the artist and title (plaintext type).
+- `titleKey`: JSON key for the song title (json type).
+- `playlistID`: Spotify playlist ID to add the songs.
 
+
+### Environment Variables
+Set up your environment variables for Spotify integration:
+- `SPOTIFY_ID`: Your Spotify Client ID
+- `SPOTIFY_SECRET`: Your Spotify Client Secret
+- `SPOTIFY_REDIRECT_URL`: Your Spotify Redirect URL
+
+You can store these in a `.env` file:
+```sh
+SPOTIFY_ID=your_spotify_client_id
+SPOTIFY_SECRET=your_spotify_client_secret
+SPOTIFY_REDIRECT_URL=your_spotify_redirect_url
+```
 ## Usage
 
 ### Fetch Now Playing
-Fetch the now-playing songs for all stations defined in the `config.json` file:
+Fetch the now-playing songs for all stations defined in the `stations.json` file:
 ```sh
-./radio-to-spotify fetch --config=config.json --loglevel=debug --storage=file --storage-path=data/db.json
+./radio-to-spotify fetch --config=stations.json --loglevel=debug --storage=file --storage-path=data/db.json
 ```
 
 ### Store Now Playing
 Fetch and store now-playing songs for a specific station (dry run):
 ```sh
-./radio-to-spotify store --config=config.json --station=radiofritz --loglevel=info --dry-run --storage=file --storage-path=data/db.json
+./radio-to-spotify store --config=stations.json --station=radiofritz --loglevel=info --dry-run --storage=file --storage-path=data/db.json
 ```
 
 ### Create Spotify Playlist
 Create a Spotify playlist for the last hour of songs for a specific station:
 ```sh
-./radio-to-spotify playlist --config=config.json --station=radiofritz --loglevel=error --storage=file --storage-path=data/db.json
+./radio-to-spotify playlist --config=stations.json --station=radiofritz --loglevel=error --storage=file --storage-path=data/db.json --playlist-range=lasthour
 ```
 
 ### Run as a Daemon
 Run the tool as a daemon to periodically fetch and store now-playing songs:
 ```sh
-./radio-to-spotify daemon --config=config.json --loglevel=debug --storage=file --storage-path=data/db.json
+./radio-to-spotify daemon --config=stations.json --loglevel=debug --storage=file --storage-path=data/db.json --interval=1m --playlist-range=lasthour
 ```
 
-## Environment Variables
-For Spotify integration, set the following environment variables:
-- `SPOTIFY_ID`: Your Spotify Client ID
-- `SPOTIFY_SECRET`: Your Spotify Client Secret
-- `SPOTIFY_REDIRECT_URL`: Your Spotify Redirect URL
+## Running with Docker
+You can use the provided Docker image `ceddicedced/radiotospotify` to run the application:
 
 ```sh
-export SPOTIFY_ID=your_spotify_client_id
-export SPOTIFY_SECRET=your_spotify_client_secret
-export SPOTIFY_REDIRECT_URL=your_spotify_redirect_url
+docker pull ceddicedced/radiotospotify
+docker run -v $(pwd)/data:/app/data -e SPOTIFY_ID -e SPOTIFY_SECRET -e SPOTIFY_REDIRECT_URL ceddicedced/radiotospotify daemon --config=stations.json --loglevel=debug --storage=file --storage-path=data/db.json --interval=1m --playlist-range=lasthour
+```
+
+To build and run your own Docker image:
+```sh
+docker build -t radio-to-spotify .
+docker run -v $(pwd)/data:/app/data -e SPOTIFY_ID -e SPOTIFY_SECRET -e SPOTIFY_REDIRECT_URL radio-to-spotify daemon --config=stations.json --loglevel=debug --storage=file --storage-path=data/db.json --interval=1m --playlist-range=lasthour
 ```
 
 ## Contributing
@@ -110,4 +164,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 Created by [Ceddicedced](https://github.com/ceddicedced) - feel free to contact me!
-
