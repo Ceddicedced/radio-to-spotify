@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"time"
 
 	"radio-to-spotify/config"
@@ -52,6 +53,7 @@ func (s *ScraperService) Stop() {
 func (s *ScraperService) scrape() {
 	s.logger.Debugf("Scraping now playing songs")
 	var storedCount, playlistCount, songCount int
+	var wg sync.WaitGroup
 
 	if !noStore {
 		stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
@@ -81,15 +83,20 @@ func (s *ScraperService) scrape() {
 		if stationID != "" {
 			stations = []string{stationID}
 		}
-		for _, stationID := range stations {
-			err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
-			if err != nil {
-				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
-			} else {
-				playlistCount++
-			}
-		}
 
+		for _, stationID := range stations {
+			wg.Add(1)
+			go func(stationID string) {
+				defer wg.Done()
+				err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
+				if err != nil {
+					s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
+				} else {
+					playlistCount++
+				}
+			}(stationID)
+		}
+		wg.Wait()
 	}
 
 	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", songCount, storedCount, playlistCount)
