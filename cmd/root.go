@@ -36,8 +36,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&storageType, "storage", "sqlite", "Storage type: file or sqlite")
-	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "data", "Path to storage file or database")
+	rootCmd.PersistentFlags().StringVar(&storageType, "storage", "sqlite", "Storage type: file or sqlite or postgres")
+	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "data", "Path to storage file or database connection string")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Logging level: debug, info, warn, error, fatal, panic")
 	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")

@@ -103,7 +103,7 @@ func init() {
 	daemonCmd.Flags().BoolVar(&noStore, "no-store", false, "Run without storing the now playing songs")
 	daemonCmd.Flags().BoolVar(&noPlaylist, "no-playlist", false, "Run without updating the Spotify playlist")
 	daemonCmd.Flags().DurationVar(&interval, "interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
-	daemonCmd.Flags().StringVar(&playlistRange, "playlist-range", "lasthour", "Time range for playlist update (lasthour, lastday, lastweek)")
+	daemonCmd.Flags().StringVar(&playlistRange, "playlist-range", "lastday", "Time range for playlist update (lasthour, lastday, lastweek)")
 	rootCmd.AddCommand(daemonCmd)
 }
 
