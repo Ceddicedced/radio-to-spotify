@@ -78,7 +78,9 @@ func (s *ScraperService) scrape() {
 			s.logger.Errorf("Error getting all stations: %v", err)
 			return
 		}
-
+		if stationID != "" {
+			stations = []string{stationID}
+		}
 		for _, stationID := range stations {
 			err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
 			if err != nil {
