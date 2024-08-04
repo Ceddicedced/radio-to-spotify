@@ -16,6 +16,7 @@ import (
 var (
 	authenticator *spotifyauth.Authenticator
 	tokenFile     = ".token"
+	token         *oauth2.Token
 )
 
 // getEnv reads an environment variable or returns a default value
@@ -50,7 +51,8 @@ func initializeAuthenticator() {
 }
 
 func getAuthToken() (*oauth2.Token, error) {
-	initializeAuthenticator() // Initialize authenticator
+	defer saveTokenToFile(tokenFile, token) // Save token to file when function exits
+	initializeAuthenticator()               // Initialize authenticator
 
 	token, err := loadTokenFromFile(tokenFile)
 	if err != nil {
@@ -87,8 +89,6 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saveTokenToFile(tokenFile, tok)
-
 	client := spotify.New(authenticator.Client(context.Background(), tok))
 	_, err = client.CurrentUser(context.Background())
 	if err != nil {
@@ -100,6 +100,9 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func saveTokenToFile(path string, token *oauth2.Token) error {
+	if token == nil {
+		return nil
+	}
 	file, err := os.Create(path)
 	if err != nil {
 		return err
