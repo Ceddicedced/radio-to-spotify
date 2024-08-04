@@ -62,7 +62,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) erro
 	if err != nil {
 		return err
 	}
-	s.logger.Infof("Found %d songs for station: %s with time range: %s", len(songs), station.Name, timeRange)
+	s.logger.Debugf("Updating Spotify Playlist with %d songs for station: %s with time range: %s", len(songs), station.Name, timeRange)
 
 	if station.PlaylistID == "" {
 		return fmt.Errorf("no playlist ID found for station: %s", station.Name)
