@@ -18,13 +18,15 @@ import (
 var (
 	noStore                  bool
 	noPlaylist               bool
-	interval                 time.Duration
+	fetchInterval            time.Duration
+	playlistUpdateInterval   time.Duration
 	playlistRange            string
 	sessionKeepAliveInterval time.Duration
 )
 
 type ScraperService struct {
-	Interval                 time.Duration
+	FetchInterval            time.Duration
+	PlaylistUpdateInterval   time.Duration
 	SessionKeepAliveInterval time.Duration
 	stopScraper              chan struct{}
 	configHandler            *config.ConfigHandler
@@ -34,22 +36,30 @@ type ScraperService struct {
 }
 
 func (s *ScraperService) Start() {
-	s.logger.Infof("Starting scraper service with interval %v", s.Interval)
-	ticker := time.NewTicker(s.Interval)
-	var sessionKeepAliveTicker *time.Ticker
+	s.logger.Infof("Starting scraper service with fetch interval %v", s.FetchInterval)
+	fetchTicker := time.NewTicker(s.FetchInterval)
+	var playlistUpdateTicker, sessionKeepAliveTicker *time.Ticker
+
 	if !noPlaylist {
+		s.logger.Debugf("Starting playlist update ticker with interval %v", s.PlaylistUpdateInterval)
+		playlistUpdateTicker = time.NewTicker(s.PlaylistUpdateInterval)
 		s.logger.Debugf("Starting session keep alive ticker with interval %v", s.SessionKeepAliveInterval)
 		sessionKeepAliveTicker = time.NewTicker(s.SessionKeepAliveInterval)
 	}
 
 	for {
 		select {
-		case <-ticker.C:
-			s.scrape()
+		case <-fetchTicker.C:
+			s.fetchNowPlaying()
+		case <-playlistUpdateTicker.C:
+			s.updatePlaylists()
 		case <-sessionKeepAliveTicker.C:
 			s.keepSpotifySessionAlive()
 		case <-s.stopScraper:
-			ticker.Stop()
+			fetchTicker.Stop()
+			if playlistUpdateTicker != nil {
+				playlistUpdateTicker.Stop()
+			}
 			if sessionKeepAliveTicker != nil {
 				sessionKeepAliveTicker.Stop()
 			}
@@ -63,10 +73,9 @@ func (s *ScraperService) Stop() {
 	close(s.stopScraper)
 }
 
-func (s *ScraperService) scrape() {
-	s.logger.Debugf("Scraping now playing songs")
-	var storedCount, playlistCount, songCount int
-	var wg sync.WaitGroup
+func (s *ScraperService) fetchNowPlaying() {
+	s.logger.Debugf("Fetching now playing songs")
+	var storedCount, songCount int
 
 	if !noStore {
 		stations, songs, err := scraper.FetchNowPlaying(s.configHandler, s.logger, stationID)
@@ -87,32 +96,44 @@ func (s *ScraperService) scrape() {
 		}
 	}
 
-	if !noPlaylist {
-		stations, err := s.storage.GetAllStations()
-		if err != nil {
-			s.logger.Errorf("Error getting all stations: %v", err)
-			return
-		}
-		if stationID != "" {
-			stations = []string{stationID}
-		}
+	s.logger.Infof("Fetched %d stations, stored %d songs", songCount, storedCount)
+}
 
-		for _, stationID := range stations {
-			wg.Add(1)
-			go func(stationID string) {
-				defer wg.Done()
-				err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
-				if err != nil {
-					s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
-				} else {
-					playlistCount++
-				}
-			}(stationID)
-		}
-		wg.Wait()
+func (s *ScraperService) updatePlaylists() {
+	if noPlaylist {
+		return
 	}
 
-	s.logger.Infof("Scraped %d stations, stored %d songs, updated %d playlists", songCount, storedCount, playlistCount)
+	s.logger.Debugf("Updating playlists")
+	var playlistCount int
+	var wg sync.WaitGroup
+
+	stations, err := s.storage.GetAllStations()
+	if err != nil {
+		s.logger.Errorf("Error getting all stations: %v", err)
+		return
+	}
+	if stationID != "" {
+		stations = []string{stationID}
+	} else {
+		s.logger.Debugf("Updating playlists for all stations")
+	}
+
+	for _, stationID := range stations {
+		wg.Add(1)
+		go func(stationID string) {
+			defer wg.Done()
+			err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
+			if err != nil {
+				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
+			} else {
+				playlistCount++
+			}
+		}(stationID)
+	}
+	wg.Wait()
+
+	s.logger.Infof("Updated %d playlists", playlistCount)
 }
 
 func (s *ScraperService) keepSpotifySessionAlive() {
@@ -134,7 +155,8 @@ var daemonCmd = &cobra.Command{
 func init() {
 	daemonCmd.Flags().BoolVar(&noStore, "no-store", false, "Run without storing the now playing songs")
 	daemonCmd.Flags().BoolVar(&noPlaylist, "no-playlist", false, "Run without updating the Spotify playlist")
-	daemonCmd.Flags().DurationVar(&interval, "interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
+	daemonCmd.Flags().DurationVar(&fetchInterval, "fetch-interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
+	daemonCmd.Flags().DurationVar(&playlistUpdateInterval, "playlist-update-interval", 1*time.Hour, "Interval between playlist updates (e.g., 30m, 1h, 5h)")
 	daemonCmd.Flags().StringVar(&playlistRange, "playlist-range", "lastday", "Time range for playlist update (lasthour, lastday, lastweek)")
 	daemonCmd.Flags().DurationVar(&sessionKeepAliveInterval, "session-keep-alive-interval", 5*time.Minute, "Interval to keep the Spotify session alive")
 	rootCmd.AddCommand(daemonCmd)
@@ -171,7 +193,8 @@ func runDaemon(cmd *cobra.Command, args []string) {
 	}
 
 	scraperService := &ScraperService{
-		Interval:                 interval,                 // Use the interval from the flag
+		FetchInterval:            fetchInterval,            // Use the fetch interval from the flag
+		PlaylistUpdateInterval:   playlistUpdateInterval,   // Use the playlist update interval from the flag
 		SessionKeepAliveInterval: sessionKeepAliveInterval, // Use the session keep alive interval from the flag
 		stopScraper:              make(chan struct{}),
 		configHandler:            configHandler,
