@@ -53,6 +53,10 @@ func getAuthToken() (*oauth2.Token, error) {
 	initializeAuthenticator() // Initialize authenticator
 
 	token, err := loadTokenFromFile(tokenFile)
+	if err != nil {
+		return nil, err
+	}
+	token, err = authenticator.RefreshToken(context.Background(), token)
 	if err == nil && token.Valid() {
 		return token, nil
 	}
@@ -129,4 +133,9 @@ func getClient() (*spotify.Client, error) {
 
 	client := spotify.New(authenticator.Client(context.Background(), token), spotify.WithRetry(true))
 	return client, nil
+}
+
+func (s *SpotifyService) UpdateSession() error {
+	_, err := s.client.CurrentUser(context.Background())
+	return err
 }
