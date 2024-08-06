@@ -48,11 +48,16 @@ func executeStore() {
 		if storeDryRun {
 			logger.Infof("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		} else {
-			err := store.StoreNowPlaying(station.ID, songs[i])
+			changed, err := store.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
 				logger.Fatalf("Error storing now playing for station %s: %v", station.ID, err)
 			}
-			logger.Infof("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+			if changed {
+				logger.Infof("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+
+			} else {
+				logger.Infof("Song hasn't changed for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+			}
 		}
 	}
 }

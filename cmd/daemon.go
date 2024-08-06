@@ -91,12 +91,15 @@ func (s *ScraperService) fetchNowPlaying() {
 		songCount = len(songs)
 
 		for i, station := range stations {
-			err := s.storage.StoreNowPlaying(station.ID, songs[i])
+			changed, err := s.storage.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
 				s.logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
 			} else {
 				s.logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
-				storedCount++
+				if changed {
+					// Only count stored songs that have changed
+					storedCount++
+				}
 			}
 		}
 	}

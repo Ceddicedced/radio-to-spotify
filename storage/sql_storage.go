@@ -104,13 +104,13 @@ func (s *PostgreSQLStorage) createStationTable(stationID string) error {
 	return err
 }
 
-func (s *PostgreSQLStorage) StoreNowPlaying(stationID string, song *scraper.Song) error {
+func (s *PostgreSQLStorage) StoreNowPlaying(stationID string, song *scraper.Song) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	lastSong, exists := s.songs[stationID]
 	if exists && lastSong.Artist == song.Artist && lastSong.Title == song.Title {
-		return nil // Song hasn't changed
+		return false, nil // Song hasn't changed
 	}
 
 	s.songs[stationID] = song
@@ -118,17 +118,17 @@ func (s *PostgreSQLStorage) StoreNowPlaying(stationID string, song *scraper.Song
 	// Ensure the table for the station exists
 	err := s.createStationTable(stationID)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	// Insert the new song into the station-specific table
 	_, err = s.db.Exec(fmt.Sprintf(`INSERT INTO station_%s (artist, title) VALUES ($1, $2)`, stationID),
 		song.Artist, song.Title)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return true, nil
 }
 
 func (s *PostgreSQLStorage) GetNowPlaying(stationID string) (*scraper.Song, error) {

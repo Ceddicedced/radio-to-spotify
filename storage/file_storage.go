@@ -44,7 +44,7 @@ func (s *FileStorage) Init() error {
 	return s.loadFromFile()
 }
 
-func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) error {
+func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) (bool, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -52,7 +52,7 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 	if exists && len(lastSongs) > 0 {
 		lastSong := lastSongs[len(lastSongs)-1]
 		if lastSong.Artist == song.Artist && lastSong.Title == song.Title {
-			return nil // Song hasn't changed
+			return false, nil // Song hasn't changed
 		}
 	}
 
@@ -68,7 +68,7 @@ func (s *FileStorage) StoreNowPlaying(stationID string, song *scraper.Song) erro
 	s.songs[stationID] = append(s.songs[stationID], songWithTimestamp)
 
 	// Serialize the song list and save to file
-	return s.saveToFile()
+	return true, s.saveToFile()
 }
 
 func (s *FileStorage) loadFromFile() error {

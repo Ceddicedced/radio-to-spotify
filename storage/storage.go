@@ -8,7 +8,7 @@ import (
 )
 
 type Storage interface {
-	StoreNowPlaying(stationID string, song *scraper.Song) error
+	StoreNowPlaying(stationID string, song *scraper.Song) (bool, error)
 	GetNowPlaying(stationID string) (*scraper.Song, error)
 	GetSongsSince(stationID string, sinceTime time.Time) ([]scraper.Song, error)
 	GetAllStations() ([]string, error)
