@@ -38,6 +38,7 @@ func executePlaylist() {
 	}
 
 	spotifyService, err := spotify.NewSpotifyService(logger, configHandler, store)
+	logger.Infof("Updating Spotify playlist for range: %s", playlistRange)
 	if err != nil {
 		logger.Fatalf("Error initializing Spotify service: %v", err)
 	}
@@ -57,6 +58,7 @@ func executePlaylist() {
 }
 
 func updateStation(spotifyService *spotify.SpotifyService, stationID string) {
+	logger.Infof("Updating Spotify playlist for station: %s", stationID)
 	err := spotifyService.UpdateSpotifyPlaylist(stationID, playlistRange)
 	if err != nil {
 		logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
