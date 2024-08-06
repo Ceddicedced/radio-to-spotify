@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"radio-to-spotify/config"
@@ -173,7 +174,7 @@ func init() {
 func runDaemon(cmd *cobra.Command, args []string) {
 	logger.Info("Starting daemon")
 	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	configHandler, err := config.NewConfigHandler(stationFile)
 	if err != nil {
