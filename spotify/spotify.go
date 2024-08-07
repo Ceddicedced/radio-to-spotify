@@ -88,6 +88,7 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 			return err
 		}
 		if searchResults.Tracks.Total > 0 {
+			s.logger.Debugf("Found track: %s - %s", searchResults.Tracks.Tracks[0].Artists[0].Name, searchResults.Tracks.Tracks[0].Name)
 			trackIDs = append(trackIDs, searchResults.Tracks.Tracks[0].ID)
 		}
 	}
