@@ -15,7 +15,7 @@ import (
 
 var (
 	authenticator *spotifyauth.Authenticator
-	tokenFile     = ".token"
+	tokenFile     = "data/.token"
 	token         *oauth2.Token
 )
 
@@ -93,6 +93,8 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	saveTokenToFile(tokenFile, tok)
+
 	fmt.Fprintf(w, "Login Completed! You can close this window.")
 }
 
@@ -111,7 +113,9 @@ func saveTokenToFile(path string, token *oauth2.Token) error {
 
 func loadTokenFromFile(path string) (*oauth2.Token, error) {
 	file, err := os.Open(path)
-	if err != nil {
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 	defer file.Close()
