@@ -11,6 +11,6 @@ FROM debian:stable-slim
 RUN apt update && apt install -y --no-install-recommends ca-certificates
 WORKDIR /app
 COPY --from=builder /app .
-COPY stations.json .
+COPY data/stations.json .
 ENTRYPOINT ["./app"]
 LABEL Name=radiotospotify Version=0.0.2
