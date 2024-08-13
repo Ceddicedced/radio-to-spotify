@@ -54,11 +54,8 @@ func getAuthToken() (*oauth2.Token, error) {
 	defer saveTokenToFile(tokenFile, token) // Save token to file when function exits
 	initializeAuthenticator()               // Initialize authenticator
 
-	token, err := loadTokenFromFile(tokenFile)
-	if err != nil {
-		return nil, err
-	}
-	token, err = authenticator.RefreshToken(context.Background(), token)
+	token, _ := loadTokenFromFile(tokenFile)
+	token, err := authenticator.RefreshToken(context.Background(), token)
 	if err == nil && token.Valid() {
 		return token, nil
 	}
