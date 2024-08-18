@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 
-path=./build
+path=.
+main_file=../main.go
 	
 platforms=("windows/amd64" "windows/386" "linux/amd64" "linux/386" "linux/arm" "linux/arm64" "wasip1/wasm" "js/wasm")
 
@@ -16,9 +17,9 @@ do
 	elif [ $GOARCH = "wasm" ]; then
 		output_name=$path'/'$GOOS'.wasm'
 	else
-		output_name+='.out'
+		output_name+='.bin'
 	fi	
-	env GOOS=$GOOS GOARCH=$GOARCH go build -o $output_name .
+	env GOOS=$GOOS GOARCH=$GOARCH go build -o $output_name $main_file
 	if [ $? -ne 0 ]; then
    		echo 'An error has occurred! '
 		echo 'GOOS='$GOOS
