@@ -4,6 +4,7 @@ import (
 	"radio-to-spotify/config"
 	"radio-to-spotify/spotify"
 	"radio-to-spotify/storage"
+	"sync"
 
 	"github.com/spf13/cobra"
 )
@@ -48,9 +49,15 @@ func executePlaylist() {
 		if len(configStations) == 0 {
 			logger.Fatalf("No stations found in config")
 		}
+		var wg sync.WaitGroup
+		wg.Add(len(configStations))
 		for _, station := range configStations {
-			updateStation(spotifyService, station.ID)
+			go func(stationID string) {
+				defer wg.Done()
+				updateStation(spotifyService, stationID)
+			}(station.ID)
 		}
+		wg.Wait()
 	} else {
 		updateStation(spotifyService, stationID)
 	}
