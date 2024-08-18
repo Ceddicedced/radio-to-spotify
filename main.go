@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"radio-to-spotify/cmd"
 
 	"github.com/joho/godotenv"
@@ -18,7 +19,7 @@ func main() {
 // Load environment variables from .env file if it exists
 func loadEnv() {
 	err := godotenv.Load()
-	if err != nil && err.Error() != "open .env: no such file or directory" {
+	if err != nil && !os.IsNotExist(err) {
 		fmt.Println("Error loading .env file: ", err)
 	}
 }
