@@ -21,7 +21,7 @@ type PostgreSQLStorage struct {
 
 func NewPostgreSQLStorage(connStr string) (*PostgreSQLStorage, error) {
 	if connStr == "data" {
-		return nil, errors.New("missing connection string for PostgreSQL storage. Example: postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full")
+		return nil, errors.New("missing connection string for PostgreSQL storage. Example: postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full | provide via --storage-path")
 	}
 
 	db, err := sql.Open("postgres", connStr)
