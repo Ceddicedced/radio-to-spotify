@@ -15,6 +15,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// TODO Update to https://github.com/ncruces/go-sqlite3
+
 type SQLiteStorage struct {
 	mu    sync.Mutex
 	songs map[string]*scraper.Song
