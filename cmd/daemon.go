@@ -54,15 +54,19 @@ func (s *ScraperService) Start() {
 		sessionKeepAliveTicker.Stop()
 	}
 
+	wg := sync.WaitGroup{}
 	for {
 		select {
 		case <-fetchTicker.C:
-			s.fetchNowPlaying()
+			wg.Add(1)
+			go s.fetchNowPlaying(&wg)
 		case <-playlistUpdateTicker.C:
-			s.updatePlaylists()
+			wg.Add(1)
+			go s.updatePlaylists(&wg)
 		case <-sessionKeepAliveTicker.C:
-			s.keepSpotifySessionAlive()
+			s.keepSpotifySessionAlive(&wg)
 		case <-s.stopScraper:
+			wg.Wait()
 			fetchTicker.Stop()
 			if playlistUpdateTicker != nil {
 				playlistUpdateTicker.Stop()
@@ -80,7 +84,8 @@ func (s *ScraperService) Stop() {
 	close(s.stopScraper)
 }
 
-func (s *ScraperService) fetchNowPlaying() {
+func (s *ScraperService) fetchNowPlaying(wg *sync.WaitGroup) {
+	defer wg.Done()
 	s.logger.Debugf("Fetching now playing songs")
 	var storedCount, songCount int
 
@@ -109,14 +114,14 @@ func (s *ScraperService) fetchNowPlaying() {
 	s.logger.Infof("Fetched %d stations, stored %d songs", songCount, storedCount)
 }
 
-func (s *ScraperService) updatePlaylists() {
+func (s *ScraperService) updatePlaylists(wg *sync.WaitGroup) {
+	defer wg.Done()
 	if noPlaylist {
 		return
 	}
 
 	s.logger.Debugf("Updating playlists")
 	var playlistCount int
-	var wg sync.WaitGroup
 
 	stations, err := s.storage.GetAllStations()
 	if err != nil {
@@ -130,23 +135,19 @@ func (s *ScraperService) updatePlaylists() {
 	}
 
 	for _, stationID := range stations {
-		wg.Add(1)
-		go func(stationID string) {
-			defer wg.Done()
-			err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
-			if err != nil {
-				s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
-			} else {
-				playlistCount++
-			}
-		}(stationID)
+		err := s.spotify.UpdateSpotifyPlaylist(stationID, playlistRange)
+		if err != nil {
+			s.logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
+		} else {
+			playlistCount++
+		}
 	}
-	wg.Wait()
 
 	s.logger.Infof("Updated %d playlists", playlistCount)
 }
 
-func (s *ScraperService) keepSpotifySessionAlive() {
+func (s *ScraperService) keepSpotifySessionAlive(wg *sync.WaitGroup) {
+	defer wg.Done()
 	s.logger.Debug("Keeping Spotify session alive")
 	err := s.spotify.UpdateSession()
 	if err != nil {
