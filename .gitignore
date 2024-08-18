@@ -29,3 +29,6 @@ go.work.sum
 
 # Dont commit token
 .token
+
+# Ignore build directory
+build/
