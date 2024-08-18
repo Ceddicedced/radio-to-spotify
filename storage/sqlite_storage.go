@@ -12,10 +12,10 @@ import (
 
 	"radio-to-spotify/scraper"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/ncruces/go-sqlite3"
+	_ "github.com/ncruces/go-sqlite3/driver"
+	_ "github.com/ncruces/go-sqlite3/embed"
 )
-
-// TODO Update to https://github.com/ncruces/go-sqlite3
 
 type SQLiteStorage struct {
 	mu    sync.Mutex
@@ -32,6 +32,7 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 	// Join the directory path with the database file name
 	dbFile := filepath.Join(dbPath, "db.sqlite")
 
+	// Open the database using the ncruces/go-sqlite3 driver
 	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
 		return nil, err
@@ -41,16 +42,7 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 		db:    db,
 	}
 
-	err = storage.initSQLite()
-	if err != nil {
-		return nil, err
-	}
-
 	return storage, nil
-}
-
-func (s *SQLiteStorage) initSQLite() error {
-	return nil
 }
 
 func (s *SQLiteStorage) Init() error {
