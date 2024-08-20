@@ -64,6 +64,7 @@ func (s *ScraperService) Start() {
 			wg.Add(1)
 			go s.updatePlaylists(&wg)
 		case <-sessionKeepAliveTicker.C:
+			wg.Add(1)
 			s.keepSpotifySessionAlive(&wg)
 		case <-s.stopScraper:
 			wg.Wait()
