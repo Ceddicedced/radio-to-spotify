@@ -87,10 +87,17 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 		if err != nil {
 			return err
 		}
-		if searchResults.Tracks.Total > 0 {
+		if searchResults.Tracks.Total > 0 && len(searchResults.Tracks.Tracks) > 0 {
 			s.logger.Debugf("Found track: %s - %s", searchResults.Tracks.Tracks[0].Artists[0].Name, searchResults.Tracks.Tracks[0].Name)
 			trackIDs = append(trackIDs, searchResults.Tracks.Tracks[0].ID)
 		}
+		if searchResults.Tracks.Total == 0 {
+			s.logger.Warnf("No track found for: %s - %s", song.Artist, song.Title)
+		}
+		if len(searchResults.Tracks.Tracks) == 0 {
+			s.logger.Warnf("Track Page is empty for: %s - %s (%s)", song.Artist, song.Title, searchResults.Tracks.Endpoint)
+		}
+
 	}
 
 	s.logger.Debugf("Replacing playlist %s with %d tracks", playlistID, len(trackIDs))
