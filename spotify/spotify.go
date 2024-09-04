@@ -20,10 +20,12 @@ type SpotifyService struct {
 }
 
 func NewSpotifyService(logger *logrus.Logger, configHandler *config.ConfigHandler, store storage.Storage) (*SpotifyService, error) {
+	logger.Debug("Initializing Spotify service")
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
+	logger.Debug("Got Spotify client")
 	user, err := client.CurrentUser(context.Background())
 	if err != nil {
 		return nil, err
@@ -85,6 +87,7 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 	for _, song := range songs {
 		searchResults, err := s.client.Search(context.Background(), fmt.Sprintf("%s %s", song.Artist, song.Title), spotify.SearchTypeTrack)
 		if err != nil {
+			s.logger.Warnf("Error searching for track: %s by %s: %v", song.Title, song.Artist, err)
 			return err
 		}
 		if searchResults.Tracks.Total > 0 && len(searchResults.Tracks.Tracks) > 0 {
