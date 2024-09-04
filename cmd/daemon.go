@@ -42,12 +42,12 @@ func (s *ScraperService) Start() {
 	var playlistUpdateTicker, sessionKeepAliveTicker *time.Ticker
 
 	if !noPlaylist {
-		s.logger.Debugf("Starting playlist update ticker with interval %v", s.PlaylistUpdateInterval)
+		s.logger.Infof("Starting playlist update ticker with interval %v", s.PlaylistUpdateInterval)
 		playlistUpdateTicker = time.NewTicker(s.PlaylistUpdateInterval)
-		s.logger.Debugf("Starting session keep alive ticker with interval %v", s.SessionKeepAliveInterval)
+		s.logger.Infof("Starting session keep alive ticker with interval %v", s.SessionKeepAliveInterval)
 		sessionKeepAliveTicker = time.NewTicker(s.SessionKeepAliveInterval)
 	} else { // If no playlist update, don't start the tickers / Kinda hacky
-		s.logger.Debug("Running without playlist update")
+		s.logger.Info("Running without playlist update")
 		playlistUpdateTicker = time.NewTicker(1)
 		sessionKeepAliveTicker = time.NewTicker(1)
 		playlistUpdateTicker.Stop()
