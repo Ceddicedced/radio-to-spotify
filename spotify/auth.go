@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
@@ -78,7 +79,8 @@ func getAuthToken() (*oauth2.Token, error) {
 func completeAuth(w http.ResponseWriter, r *http.Request) {
 	tok, err := authenticator.Token(context.Background(), "state-token", r)
 	if err != nil {
-		http.Error(w, "Couldn't get token", http.StatusForbidden)
+		http.Error(w, "Couldn't get token ", http.StatusForbidden)
+		logrus.Error(err)
 		return
 	}
 	if st := r.FormValue("state"); st != "state-token" {
@@ -90,6 +92,7 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 	_, err = client.CurrentUser(context.Background())
 	if err != nil {
 		http.Error(w, "Couldn't get user", http.StatusForbidden)
+		logrus.Error(err)
 		return
 	}
 
