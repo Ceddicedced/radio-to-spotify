@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"radio-to-spotify/utils"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -20,19 +21,11 @@ var (
 	token         *oauth2.Token
 )
 
-// getEnv reads an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	if value, exists := os.LookupEnv(key); exists {
-		return value
-	}
-	return defaultValue
-}
-
 // initializeAuthenticator initializes the Spotify authenticator
 func initializeAuthenticator() {
-	clientID := getEnv("SPOTIFY_ID", "")
-	clientSecret := getEnv("SPOTIFY_SECRET", "")
-	redirectURL := getEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
+	clientID := utils.GetEnv("SPOTIFY_ID", "")
+	clientSecret := utils.GetEnv("SPOTIFY_SECRET", "")
+	redirectURL := utils.GetEnv("SPOTIFY_REDIRECT_URL", "http://localhost:8080/callback")
 
 	if clientID == "" || clientSecret == "" {
 		fmt.Println("Please set SPOTIFY_ID and SPOTIFY_SECRET environment variables")
@@ -62,7 +55,7 @@ func getAuthToken() (*oauth2.Token, error) {
 	}
 
 	http.HandleFunc("/callback", completeAuth)
-	go http.ListenAndServe(":"+getEnv("SPOTIFY_PORT", "8080"), nil)
+	go http.ListenAndServe(":"+utils.GetEnv("SPOTIFY_PORT", "8080"), nil)
 
 	url := authenticator.AuthURL("state-token")
 	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
