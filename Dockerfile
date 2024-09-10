@@ -8,7 +8,7 @@ RUN go build -v -o /app main.go
 
 #final stage
 FROM debian:stable-slim
-RUN apt update && apt install -y --no-install-recommends ca-certificates
+RUN apt update && apt install -y --no-install-recommends ca-certificates curl
 WORKDIR /app
 COPY --from=builder /app .
 COPY data/stations.json /app/data/stations.json
