@@ -80,7 +80,7 @@ func (s *ScraperService) Stop() {
 
 func (s *ScraperService) fetchNowPlaying(wg *sync.WaitGroup) {
 	defer wg.Done()
-	utils.SetLastFetchTime(time.Now())
+	utils.SetLastUpdateTime("fetch", time.Now())
 	utils.Logger.Debugf("Fetching now playing songs")
 	var storedCount, songCount int
 
@@ -115,6 +115,7 @@ func (s *ScraperService) updatePlaylists(wg *sync.WaitGroup) {
 		return
 	}
 
+	utils.SetLastUpdateTime("playlist", time.Now())
 	utils.Logger.Debugf("Updating playlists")
 	var playlistCount int
 
@@ -202,7 +203,10 @@ func runDaemon(cmd *cobra.Command, args []string) {
 		if err != nil {
 			utils.Logger.Fatalf("Error parsing healthcheck port: %v", err)
 		}
-		go utils.StartHealthCheckServer(port, fetchInterval)
+		if noPlaylist {
+			playlistUpdateInterval = 0
+		}
+		go utils.StartHealthCheckServer(port, fetchInterval, playlistUpdateInterval, spotifyService)
 	}
 	go scraperService.Start()
 

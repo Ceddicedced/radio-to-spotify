@@ -139,3 +139,11 @@ func (s *SpotifyService) UpdateSession() error {
 	_, err := s.client.CurrentUser(context.Background())
 	return err
 }
+
+func (s *SpotifyService) CheckHealth() (bool, string) {
+	_, err := s.client.CurrentUser(context.Background())
+	if err != nil {
+		return false, "Spotify service is unavailable"
+	}
+	return true, "Spotify service is working"
+}
