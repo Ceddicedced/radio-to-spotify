@@ -3,39 +3,36 @@ package spotify
 import (
 	"context"
 	"fmt"
-	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
 	"radio-to-spotify/storage"
+	"radio-to-spotify/utils"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify/v2"
 )
 
 type SpotifyService struct {
 	client        *spotify.Client
-	configHandler *config.ConfigHandler
+	configHandler *utils.ConfigHandler
 	store         storage.Storage
-	logger        *logrus.Logger
 }
 
-func NewSpotifyService(logger *logrus.Logger, configHandler *config.ConfigHandler, store storage.Storage) (*SpotifyService, error) {
-	logger.Debug("Initializing Spotify service")
+func NewSpotifyService(configHandler *utils.ConfigHandler, store storage.Storage) (*SpotifyService, error) {
+	utils.Logger.Debug("Initializing Spotify service")
 	client, err := getClient()
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug("Got Spotify client")
+	utils.Logger.Debug("Got Spotify client")
 	user, err := client.CurrentUser(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("Logged in as: %s", user.DisplayName)
+	utils.Logger.Infof("Logged in as: %s", user.DisplayName)
 	return &SpotifyService{
 		client:        client,
 		configHandler: configHandler,
 		store:         store,
-		logger:        logger,
 	}, nil
 }
 
@@ -64,7 +61,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) erro
 	if err != nil {
 		return err
 	}
-	s.logger.Debugf("Updating Spotify Playlist with %d songs for station: %s with time range: %s", len(songs), station.Name, timeRange)
+	utils.Logger.Debugf("Updating Spotify Playlist with %d songs for station: %s with time range: %s", len(songs), station.Name, timeRange)
 
 	if station.PlaylistID == "" {
 		return fmt.Errorf("no playlist ID found for station: %s", station.Name)
@@ -77,7 +74,7 @@ func (s *SpotifyService) UpdateSpotifyPlaylist(stationID, timeRange string) erro
 		return err
 	}
 
-	s.logger.Debugf("Updated Spotify playlist for station: %s with time range: %s", station.Name, timeRange)
+	utils.Logger.Debugf("Updated Spotify playlist for station: %s with time range: %s", station.Name, timeRange)
 	return nil
 }
 
@@ -87,23 +84,23 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 	for _, song := range songs {
 		searchResults, err := s.client.Search(context.Background(), fmt.Sprintf("%s %s", song.Artist, song.Title), spotify.SearchTypeTrack)
 		if err != nil {
-			s.logger.Warnf("Error searching for track: %s by %s: %v", song.Title, song.Artist, err)
+			utils.Logger.Warnf("Error searching for track: %s by %s: %v", song.Title, song.Artist, err)
 			return err
 		}
 		if searchResults.Tracks.Total > 0 && len(searchResults.Tracks.Tracks) > 0 {
-			s.logger.Debugf("Found track: %s - %s", searchResults.Tracks.Tracks[0].Artists[0].Name, searchResults.Tracks.Tracks[0].Name)
+			utils.Logger.Debugf("Found track: %s - %s", searchResults.Tracks.Tracks[0].Artists[0].Name, searchResults.Tracks.Tracks[0].Name)
 			trackIDs = append(trackIDs, searchResults.Tracks.Tracks[0].ID)
 		}
 		if searchResults.Tracks.Total == 0 {
-			s.logger.Warnf("No track found for: %s - %s", song.Artist, song.Title)
+			utils.Logger.Warnf("No track found for: %s - %s", song.Artist, song.Title)
 		}
 		if len(searchResults.Tracks.Tracks) == 0 {
-			s.logger.Warnf("Track Page is empty for: %s - %s (%s)", song.Artist, song.Title, searchResults.Tracks.Endpoint)
+			utils.Logger.Warnf("Track Page is empty for: %s - %s (%s)", song.Artist, song.Title, searchResults.Tracks.Endpoint)
 		}
 
 	}
 
-	s.logger.Debugf("Replacing playlist %s with %d tracks", playlistID, len(trackIDs))
+	utils.Logger.Debugf("Replacing playlist %s with %d tracks", playlistID, len(trackIDs))
 
 	// Replace the entire playlist with the new tracks
 	if len(trackIDs) > 100 {
@@ -136,10 +133,10 @@ func (s *SpotifyService) replacePlaylistTracksInBatches(playlistID spotify.ID, t
 		batch := trackIDs[i:end]
 		_, err := s.client.AddTracksToPlaylist(context.Background(), playlistID, batch...)
 		if err != nil {
-			s.logger.Errorf("Error adding batch of tracks to playlist %s: %v", playlistID, err)
+			utils.Logger.Errorf("Error adding batch of tracks to playlist %s: %v", playlistID, err)
 			return err
 		}
-		s.logger.Debugf("Added batch of %d tracks to playlist %s", len(batch), playlistID)
+		utils.Logger.Debugf("Added batch of %d tracks to playlist %s", len(batch), playlistID)
 	}
 
 	return nil

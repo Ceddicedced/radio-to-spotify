@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
 	"radio-to-spotify/storage"
+	"radio-to-spotify/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -24,39 +24,39 @@ var storeCmd = &cobra.Command{
 }
 
 func executeStore() {
-	configHandler, err := config.NewConfigHandler(stationFile)
+	configHandler, err := utils.NewConfigHandler(stationFile)
 	if err != nil {
-		logger.Fatalf("Error loading config: %v", err)
+		utils.Logger.Fatalf("Error loading config: %v", err)
 	}
 
 	store, err := storage.NewStorage(storageType, storagePath)
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
 	err = store.Init()
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	stations, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
+	stations, songs, err := scraper.FetchNowPlaying(configHandler, stationID)
 	if err != nil {
-		logger.Fatalf("Error fetching now playing: %v", err)
+		utils.Logger.Fatalf("Error fetching now playing: %v", err)
 	}
 
 	for i, station := range stations {
 		if storeDryRun {
-			logger.Infof("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+			utils.Logger.Infof("Dry run: would store song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 		} else {
 			changed, err := store.StoreNowPlaying(station.ID, songs[i])
 			if err != nil {
-				logger.Fatalf("Error storing now playing for station %s: %v", station.ID, err)
+				utils.Logger.Fatalf("Error storing now playing for station %s: %v", station.ID, err)
 			}
 			if changed {
-				logger.Infof("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+				utils.Logger.Infof("Stored song for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 
 			} else {
-				logger.Infof("Song hasn't changed for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
+				utils.Logger.Infof("Song hasn't changed for station %s: %s - %s\n", station.ID, songs[i].Artist, songs[i].Title)
 			}
 		}
 	}

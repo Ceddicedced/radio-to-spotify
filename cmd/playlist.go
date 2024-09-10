@@ -1,9 +1,9 @@
 package cmd
 
 import (
-	"radio-to-spotify/config"
 	"radio-to-spotify/spotify"
 	"radio-to-spotify/storage"
+	"radio-to-spotify/utils"
 	"sync"
 
 	"github.com/spf13/cobra"
@@ -23,31 +23,31 @@ func init() {
 }
 
 func executePlaylist() {
-	configHandler, err := config.NewConfigHandler(stationFile)
+	configHandler, err := utils.NewConfigHandler(stationFile)
 	if err != nil {
-		logger.Fatalf("Error loading config: %v", err)
+		utils.Logger.Fatalf("Error loading config: %v", err)
 	}
 
 	store, err := storage.NewStorage(storageType, storagePath)
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
 	err = store.Init()
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
-	spotifyService, err := spotify.NewSpotifyService(logger, configHandler, store)
-	logger.Infof("Updating Spotify playlist for range: %s", playlistRange)
+	spotifyService, err := spotify.NewSpotifyService( configHandler, store)
+	utils.Logger.Infof("Updating Spotify playlist for range: %s", playlistRange)
 	if err != nil {
-		logger.Fatalf("Error initializing Spotify service: %v", err)
+		utils.Logger.Fatalf("Error initializing Spotify service: %v", err)
 	}
 
 	if stationID == "" {
 		configStations := configHandler.GetAllStations()
 		if len(configStations) == 0 {
-			logger.Fatalf("No stations found in config")
+			utils.Logger.Fatalf("No stations found in config")
 		}
 		var wg sync.WaitGroup
 		wg.Add(len(configStations))
@@ -65,11 +65,11 @@ func executePlaylist() {
 }
 
 func updateStation(spotifyService *spotify.SpotifyService, stationID string) {
-	logger.Infof("Updating Spotify playlist for station: %s", stationID)
+	utils.Logger.Infof("Updating Spotify playlist for station: %s", stationID)
 	err := spotifyService.UpdateSpotifyPlaylist(stationID, playlistRange)
 	if err != nil {
-		logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
+		utils.Logger.Errorf("Error updating Spotify playlist for station %s: %v", stationID, err)
 	} else {
-		logger.Infof("Updated Spotify playlist for station: %s", stationID)
+		utils.Logger.Infof("Updated Spotify playlist for station: %s", stationID)
 	}
 }

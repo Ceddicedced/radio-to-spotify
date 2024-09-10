@@ -1,11 +1,8 @@
 package scraper
 
 import (
+	"radio-to-spotify/utils"
 	"sync"
-
-	"radio-to-spotify/config"
-
-	"github.com/sirupsen/logrus"
 )
 
 type Song struct {
@@ -18,16 +15,15 @@ type Scraper interface {
 }
 
 type BaseScraper struct {
-	Logger *logrus.Logger
-	URL    string
+	URL string
 }
 
-func NewBaseScraper(logger *logrus.Logger, URL string) *BaseScraper {
-	return &BaseScraper{Logger: logger, URL: URL}
+func NewBaseScraper(URL string) *BaseScraper {
+	return &BaseScraper{URL: URL}
 }
 
-func FetchNowPlaying(configHandler *config.ConfigHandler, logger *logrus.Logger, stationID string) ([]*config.Station, []*Song, error) {
-	var stations []config.Station
+func FetchNowPlaying(configHandler *utils.ConfigHandler, stationID string) ([]*utils.Station, []*Song, error) {
+	var stations []utils.Station
 	if stationID != "" {
 		station, err := configHandler.GetStationByID(stationID)
 		if err != nil {
@@ -40,19 +36,19 @@ func FetchNowPlaying(configHandler *config.ConfigHandler, logger *logrus.Logger,
 
 	var wg sync.WaitGroup
 	results := make(chan struct {
-		Station *config.Station
+		Station *utils.Station
 		Song    *Song
 	}, len(stations))
 
 	for _, station := range stations {
 		wg.Add(1)
-		go fetchStation(&station, logger, &wg, results)
+		go fetchStation(&station, &wg, results)
 	}
 
 	wg.Wait()
 	close(results)
 
-	var stationSongs []*config.Station
+	var stationSongs []*utils.Station
 	var songs []*Song
 	for result := range results {
 		stationSongs = append(stationSongs, result.Station)
@@ -62,8 +58,8 @@ func FetchNowPlaying(configHandler *config.ConfigHandler, logger *logrus.Logger,
 	return stationSongs, songs, nil
 }
 
-func fetchStation(station *config.Station, logger *logrus.Logger, wg *sync.WaitGroup, results chan<- struct {
-	Station *config.Station
+func fetchStation(station *utils.Station, wg *sync.WaitGroup, results chan<- struct {
+	Station *utils.Station
 	Song    *Song
 }) {
 	defer wg.Done()
@@ -73,29 +69,29 @@ func fetchStation(station *config.Station, logger *logrus.Logger, wg *sync.WaitG
 
 	switch station.Type {
 	case "html":
-		scraperInstance = NewHTMLScraper(logger, station.URL, station.ArtistTag, station.TitleTag)
+		scraperInstance = NewHTMLScraper(station.URL, station.ArtistTag, station.TitleTag)
 	case "json":
-		scraperInstance = NewJSONScraper(logger, station.URL, station.ArtistKey, station.TitleKey)
+		scraperInstance = NewJSONScraper(station.URL, station.ArtistKey, station.TitleKey)
 	case "plaintext":
-		scraperInstance, err = NewPlaintextScraper(logger, station.URL, station.Regex)
+		scraperInstance, err = NewPlaintextScraper(station.URL, station.Regex)
 		if err != nil {
-			logger.Errorf("Error creating plaintext scraper for station %s (%s): %v", station.Name, station.ID, err)
+			utils.Logger.Errorf("Error creating plaintext scraper for station %s (%s): %v", station.Name, station.ID, err)
 			return
 		}
 	default:
-		logger.Errorf("Unknown scraper type for station %s (%s): %s", station.Name, station.ID, station.Type)
+		utils.Logger.Errorf("Unknown scraper type for station %s (%s): %s", station.Name, station.ID, station.Type)
 		return
 	}
 
-	logger.Debugf("Fetching now playing for station: %s (%s)", station.Name, station.ID)
+	utils.Logger.Debugf("Fetching now playing for station: %s (%s)", station.Name, station.ID)
 	nowPlaying, err := scraperInstance.GetNowPlaying()
 	if err != nil {
-		logger.Warnf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
+		utils.Logger.Warnf("Error fetching now playing for station %s (%s): %v", station.Name, station.ID, err)
 		return
 	}
 
 	results <- struct {
-		Station *config.Station
+		Station *utils.Station
 		Song    *Song
 	}{
 		Station: station,

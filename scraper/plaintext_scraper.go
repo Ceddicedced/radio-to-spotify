@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-
-	"github.com/sirupsen/logrus"
 )
 
 type PlaintextScraper struct {
@@ -14,14 +12,14 @@ type PlaintextScraper struct {
 	Regex *regexp.Regexp
 }
 
-func NewPlaintextScraper(logger *logrus.Logger, URL string, regex string) (*PlaintextScraper, error) {
+func NewPlaintextScraper(URL string, regex string) (*PlaintextScraper, error) {
 	compiledRegex, err := regexp.Compile(regex)
 	if err != nil {
 		return nil, err
 	}
 
 	return &PlaintextScraper{
-		BaseScraper: NewBaseScraper(logger, URL),
+		BaseScraper: NewBaseScraper(URL),
 		Regex:       compiledRegex,
 	}, nil
 }

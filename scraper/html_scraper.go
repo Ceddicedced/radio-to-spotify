@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/sirupsen/logrus"
 )
 
 type HTMLScraper struct {
@@ -14,9 +13,9 @@ type HTMLScraper struct {
 	TitleTag  string
 }
 
-func NewHTMLScraper(logger *logrus.Logger, URL string, artistTag string, titleTag string) *HTMLScraper {
+func NewHTMLScraper(URL string, artistTag string, titleTag string) *HTMLScraper {
 	return &HTMLScraper{
-		BaseScraper: NewBaseScraper(logger, URL),
+		BaseScraper: NewBaseScraper(URL),
 		ArtistTag:   artistTag,
 		TitleTag:    titleTag,
 	}

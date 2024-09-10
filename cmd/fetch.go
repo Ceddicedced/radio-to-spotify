@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"radio-to-spotify/config"
 	"radio-to-spotify/scraper"
+	"radio-to-spotify/utils"
 
 	"github.com/spf13/cobra"
 )
@@ -20,17 +20,17 @@ var fetchCmd = &cobra.Command{
 }
 
 func executeFetch() {
-	configHandler, err := config.NewConfigHandler(stationFile)
+	configHandler, err := utils.NewConfigHandler(stationFile)
 	if err != nil {
-		logger.Fatalf("Error loading config: %v", err)
+		utils.Logger.Fatalf("Error loading config: %v", err)
 	}
 
-	stations, songs, err := scraper.FetchNowPlaying(configHandler, logger, stationID)
+	stations, songs, err := scraper.FetchNowPlaying(configHandler, stationID)
 	if err != nil {
-		logger.Fatalf("Error fetching now playing: %v", err)
+		utils.Logger.Fatalf("Error fetching now playing: %v", err)
 	}
 
 	for i, station := range stations {
-		logger.Infof("Station: %s, Song: %s - %s", station.Name, songs[i].Artist, songs[i].Title)
+		utils.Logger.Infof("Station: %s, Song: %s - %s", station.Name, songs[i].Artist, songs[i].Title)
 	}
 }

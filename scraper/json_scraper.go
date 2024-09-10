@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/sirupsen/logrus"
 )
 
 type JSONScraper struct {
@@ -14,9 +12,9 @@ type JSONScraper struct {
 	TitleKey  []interface{}
 }
 
-func NewJSONScraper(logger *logrus.Logger, URL string, artistKey []interface{}, titleKey []interface{}) *JSONScraper {
+func NewJSONScraper(URL string, artistKey []interface{}, titleKey []interface{}) *JSONScraper {
 	return &JSONScraper{
-		BaseScraper: NewBaseScraper(logger, URL),
+		BaseScraper: NewBaseScraper( URL),
 		ArtistKey:   artistKey,
 		TitleKey:    titleKey,
 	}

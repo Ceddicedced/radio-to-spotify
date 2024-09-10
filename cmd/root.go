@@ -3,12 +3,12 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"radio-to-spotify/storage"
+	"radio-to-spotify/utils"
 )
 
 var (
@@ -47,19 +47,15 @@ func init() {
 func initConfig() {
 	var err error
 
-	level, err := logrus.ParseLevel(strings.ToLower(logLevel))
-	if err != nil {
-		logger.Fatalf("Invalid log level: %v", err)
-	}
-	logger.SetLevel(level)
+	utils.SetLevel(logLevel)
 	store, err = storage.NewStorage(storageType, storagePath)
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
 	err = store.Init()
 	if err != nil {
-		logger.Fatalf("Error initializing storage: %v", err)
+		utils.Logger.Fatalf("Error initializing storage: %v", err)
 	}
 
 }
