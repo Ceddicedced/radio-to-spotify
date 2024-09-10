@@ -39,41 +39,34 @@ type ScraperService struct {
 func (s *ScraperService) Start() {
 	s.logger.Infof("Starting scraper service with fetch interval %v", s.FetchInterval)
 	fetchTicker := time.NewTicker(s.FetchInterval)
-	var playlistUpdateTicker, sessionKeepAliveTicker *time.Ticker
+	var playlistUpdateTicker *time.Ticker
 
 	if !noPlaylist {
 		s.logger.Infof("Starting playlist update ticker with interval %v", s.PlaylistUpdateInterval)
 		playlistUpdateTicker = time.NewTicker(s.PlaylistUpdateInterval)
-		s.logger.Infof("Starting session keep alive ticker with interval %v", s.SessionKeepAliveInterval)
-		sessionKeepAliveTicker = time.NewTicker(s.SessionKeepAliveInterval)
 	} else { // If no playlist update, don't start the tickers / Kinda hacky
 		s.logger.Info("Running without playlist update")
 		playlistUpdateTicker = time.NewTicker(1)
-		sessionKeepAliveTicker = time.NewTicker(1)
 		playlistUpdateTicker.Stop()
-		sessionKeepAliveTicker.Stop()
 	}
 
 	wg := sync.WaitGroup{}
 	for {
 		select {
 		case <-fetchTicker.C:
+			logger.Debug("FetchTicker tick")
 			wg.Add(1)
 			go s.fetchNowPlaying(&wg)
 		case <-playlistUpdateTicker.C:
+			logger.Debug("PlaylistUpdateTicker tick")
 			wg.Add(1)
 			go s.updatePlaylists(&wg)
-		case <-sessionKeepAliveTicker.C:
-			wg.Add(1)
-			s.keepSpotifySessionAlive(&wg)
 		case <-s.stopScraper:
+			s.logger.Debug("Stop signal received")
 			wg.Wait()
 			fetchTicker.Stop()
 			if playlistUpdateTicker != nil {
 				playlistUpdateTicker.Stop()
-			}
-			if sessionKeepAliveTicker != nil {
-				sessionKeepAliveTicker.Stop()
 			}
 			return
 		}
@@ -147,17 +140,6 @@ func (s *ScraperService) updatePlaylists(wg *sync.WaitGroup) {
 	s.logger.Infof("Updated %d playlists", playlistCount)
 }
 
-func (s *ScraperService) keepSpotifySessionAlive(wg *sync.WaitGroup) {
-	defer wg.Done()
-	s.logger.Debug("Keeping Spotify session alive")
-	err := s.spotify.UpdateSession()
-	if err != nil {
-		s.logger.Errorf("Error keeping Spotify session alive: %v", err)
-	} else {
-		s.logger.Debug("Spotify session is active")
-	}
-}
-
 var daemonCmd = &cobra.Command{
 	Use:   "daemon",
 	Short: "Start the daemon to scrape now playing songs periodically",
@@ -170,7 +152,6 @@ func init() {
 	daemonCmd.Flags().DurationVar(&fetchInterval, "fetch-interval", 1*time.Minute, "Interval between scrapes (e.g., 30s, 1m, 5m)")
 	daemonCmd.Flags().DurationVar(&playlistUpdateInterval, "playlist-update-interval", 1*time.Hour, "Interval between playlist updates (e.g., 30m, 1h, 5h)")
 	daemonCmd.Flags().StringVar(&playlistRange, "playlist-range", "lastday", "Time range for playlist update (lasthour, lastday, lastweek)")
-	daemonCmd.Flags().DurationVar(&sessionKeepAliveInterval, "session-keep-alive-interval", 5*time.Minute, "Interval to keep the Spotify session alive")
 	rootCmd.AddCommand(daemonCmd)
 }
 
