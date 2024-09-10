@@ -3,6 +3,8 @@ package cmd
 import (
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -78,6 +80,7 @@ func (s *ScraperService) Stop() {
 
 func (s *ScraperService) fetchNowPlaying(wg *sync.WaitGroup) {
 	defer wg.Done()
+	utils.SetLastFetchTime(time.Now())
 	utils.Logger.Debugf("Fetching now playing songs")
 	var storedCount, songCount int
 
@@ -193,6 +196,14 @@ func runDaemon(cmd *cobra.Command, args []string) {
 		spotify:                  spotifyService,
 	}
 
+	if healthCheckEnv := utils.GetEnv("ENABLE_HEALTHCHECK", "false"); strings.ToLower(healthCheckEnv) == "true" {
+		portEnv := utils.GetEnv("HEALTHCHECK_PORT", "8585")
+		port, err := strconv.Atoi(portEnv)
+		if err != nil {
+			utils.Logger.Fatalf("Error parsing healthcheck port: %v", err)
+		}
+		go utils.StartHealthCheckServer(port, fetchInterval)
+	}
 	go scraperService.Start()
 
 	<-stop
