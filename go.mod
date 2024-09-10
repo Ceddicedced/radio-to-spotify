@@ -6,12 +6,11 @@ require (
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.10-0.20230707155734-3d613208bca2
-	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/ncruces/go-sqlite3 v0.18.0
+	github.com/ncruces/go-sqlite3 v0.18.2
 	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
 	github.com/spf13/cobra v1.8.1
 	github.com/zmb3/spotify/v2 v2.4.2
-	golang.org/x/oauth2 v0.22.0
+	golang.org/x/oauth2 v0.23.0
 )
 
 require (
@@ -20,6 +19,6 @@ require (
 	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tetratelabs/wazero v1.8.0 // indirect
-	golang.org/x/net v0.28.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/net v0.29.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 )
