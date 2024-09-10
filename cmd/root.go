@@ -41,7 +41,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "info", "Logging level: debug, info, warn, error, fatal, panic")
 	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "data/stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")
-
 }
 
 func initConfig() {
