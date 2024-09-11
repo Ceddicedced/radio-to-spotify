@@ -16,4 +16,4 @@ ENTRYPOINT ["./app"]
 LABEL Name=radiotospotify Version=0.0.3
 ENV ENABLE_HEALTHCHECK=true
 HEALTHCHECK --interval=3m --timeout=3s \
-  CMD curl -f http://localhost:8585/health || exit 1
+  CMD curl -s http://localhost:8585/health | grep -q '"status":"healthy"' || exit 1
