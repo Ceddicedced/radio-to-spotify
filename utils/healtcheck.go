@@ -10,9 +10,6 @@ import (
 type HealthStatus struct {
 	Status             string `json:"status"`
 	Message            string `json:"message,omitempty"`
-	SpotifyStatus      string `json:"spotify_status,omitempty"`
-	StorageStatus      string `json:"storage_status,omitempty"`
-	InternetStatus     string `json:"internet_status,omitempty"`
 	LastFetchTime      string `json:"last_fetch_time,omitempty"`
 	LastPlaylistUpdate string `json:"last_playlist_update,omitempty"`
 }
@@ -53,39 +50,51 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Check Fetch Ticker
 	if ok, message := checkInterval("fetchTicker", lastFetchTime, fetchInterval); !ok {
+		Logger.Warnf("Fetch ticker is delayed by %s", message)
 		status.Status = "unhealthy"
 		status.Message = message
 	}
+	Logger.Debugf("Last fetch time: %v", lastFetchTime)
 
 	// Check Playlist Update Ticker
 	if ok, message := checkInterval("playlistUpdateTicker", lastPlaylistUpdate, playlistUpdateInterval); !ok {
+		Logger.Warnf("Playlist update ticker is delayed by %s", message)
 		status.Status = "unhealthy"
 		status.Message = message
 	}
+	Logger.Debugf("Last playlist update time: %v", lastPlaylistUpdate)
 
 	// Check Internet Connection
 	if ok, message := checkInternetConnection(); !ok {
+		Logger.Warnf("Internet connection is down")
 		status.Status = "unhealthy"
 		status.Message = message
+	} else {
+		Logger.Debugf("Internet connection is up")
 	}
 
 	// Check Spotify Connection
 	if spotifyChecker != nil {
 		if ok, message := spotifyChecker.CheckHealth(); !ok {
+			Logger.Warnf("Spotify connection is down")
 			status.Status = "unhealthy"
-			status.SpotifyStatus = message
+			status.Message = message
+		} else {
+			Logger.Debugf("Spotify connection is up")
 		}
 	}
 
 	status.LastFetchTime = lastFetchTime.Format(time.RFC3339)
 	status.LastPlaylistUpdate = lastPlaylistUpdate.Format(time.RFC3339)
 
+	Logger.Debugf("Health check response: %v", status)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(status)
 }
 
 // StartHealthCheckServer starts an HTTP server to serve health checks
 func StartHealthCheckServer(port int, fetchIntv, playlistIntv time.Duration, spotify HealthChecker) {
+	// Initialize the global variables
 	fetchInterval = fetchIntv
 	playlistUpdateInterval = playlistIntv
 	spotifyChecker = spotify
