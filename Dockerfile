@@ -15,5 +15,5 @@ COPY data/stations.json /app/data/stations.json
 ENTRYPOINT ["./app"]
 LABEL Name=radiotospotify Version=0.0.3
 ENV ENABLE_HEALTHCHECK=true
-HEALTHCHECK --interval=3m --timeout=3s \
+HEALTHCHECK --interval=3m --timeout=3s --start-period=1m \
   CMD curl -s http://localhost:8585/health | grep -q '"status":"healthy"' || exit 1
