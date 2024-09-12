@@ -26,9 +26,9 @@ type HealthChecker interface {
 	CheckHealth() (bool, string)
 }
 
-var (
-	spotifyChecker HealthChecker
-)
+// var (
+// 	spotifyChecker HealthChecker
+// )
 
 // SetLastUpdateTime updates the timestamp for a given type of update (fetch or playlist)
 func SetLastUpdateTime(updateType string, t time.Time) {
@@ -73,16 +73,16 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 		Logger.Debugf("Internet connection is up")
 	}
 
-	// Check Spotify Connection
-	if spotifyChecker != nil {
-		if ok, message := spotifyChecker.CheckHealth(); !ok {
-			Logger.Warnf("Spotify connection is down")
-			status.Status = "unhealthy"
-			status.Message = message
-		} else {
-			Logger.Debugf("Spotify connection is up")
-		}
-	}
+	// // Check Spotify Connection
+	// if spotifyChecker != nil {
+	// 	if ok, message := spotifyChecker.CheckHealth(); !ok {
+	// 		Logger.Warnf("Spotify connection is down")
+	// 		status.Status = "unhealthy"
+	// 		status.Message = message
+	// 	} else {
+	// 		Logger.Debugf("Spotify connection is up")
+	// 	}
+	// }
 
 	status.LastFetchTime = lastFetchTime.Format(time.RFC3339)
 	status.LastPlaylistUpdate = lastPlaylistUpdate.Format(time.RFC3339)
@@ -97,7 +97,7 @@ func StartHealthCheckServer(port int, fetchIntv, playlistIntv time.Duration, spo
 	// Initialize the global variables
 	fetchInterval = fetchIntv
 	playlistUpdateInterval = playlistIntv
-	spotifyChecker = spotify
+	// spotifyChecker = spotify
 
 	SetLastUpdateTime("fetch", time.Now())
 	SetLastUpdateTime("playlist", time.Now()) // Initialize the playlist update time
