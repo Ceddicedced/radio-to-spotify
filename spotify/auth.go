@@ -141,7 +141,9 @@ func (s *SpotifyService) UpdateSession() error {
 }
 
 func (s *SpotifyService) CheckHealth() (bool, string) {
-	_, err := s.client.CurrentUser(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	_, err := s.client.CurrentUser(ctx)
 	if err != nil {
 		return false, "Spotify service is unavailable"
 	}

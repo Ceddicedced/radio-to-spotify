@@ -24,7 +24,9 @@ func NewSpotifyService(configHandler *utils.ConfigHandler, store storage.Storage
 		return nil, err
 	}
 	utils.Logger.Debug("Got Spotify client")
-	user, err := client.CurrentUser(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	user, err := client.CurrentUser(ctx)
 	if err != nil {
 		return nil, err
 	}
