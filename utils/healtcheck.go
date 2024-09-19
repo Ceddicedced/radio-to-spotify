@@ -114,6 +114,7 @@ func StartHealthCheckServer(port int, fetchIntv, playlistIntv time.Duration, spo
 func checkInterval(tickerName string, lastUpdateTime time.Time, expectedInterval time.Duration) (bool, string) {
 	timeSinceLastUpdate := time.Since(lastUpdateTime)
 	delayDuration := timeSinceLastUpdate - expectedInterval
+	Logger.Debugf("Time since last %s: %s", tickerName, timeSinceLastUpdate)
 	if expectedInterval == 0 {
 		return true, fmt.Sprintf("%s is not expected to run", tickerName)
 	}
