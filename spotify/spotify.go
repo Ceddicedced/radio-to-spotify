@@ -15,6 +15,7 @@ type SpotifyService struct {
 	client        *spotify.Client
 	configHandler *utils.ConfigHandler
 	store         storage.Storage
+	cache         *storage.SongCache
 }
 
 func NewSpotifyService(configHandler *utils.ConfigHandler, store storage.Storage) (*SpotifyService, error) {
@@ -31,10 +32,14 @@ func NewSpotifyService(configHandler *utils.ConfigHandler, store storage.Storage
 		return nil, err
 	}
 	utils.Logger.Infof("Logged in as: %s", user.DisplayName)
+
+	cache := storage.NewSongCache()
+
 	return &SpotifyService{
 		client:        client,
 		configHandler: configHandler,
 		store:         store,
+		cache:         cache,
 	}, nil
 }
 
@@ -84,14 +89,24 @@ func (s *SpotifyService) ReplaceSongsInPlaylist(playlistID spotify.ID, songs []s
 	var trackIDs []spotify.ID
 
 	for _, song := range songs {
+		// Check if the song is already in the cache
+		if cachedID, found := s.cache.GetFromCache(song.Artist, song.Title); found {
+			trackID := spotify.ID(cachedID)
+			trackIDs = append(trackIDs, trackID)
+			utils.Logger.Debugf("Using cached track ID for: %s - %s", song.Artist, song.Title)
+			continue
+		}
+
 		searchResults, err := s.client.Search(context.Background(), fmt.Sprintf("%s %s", song.Artist, song.Title), spotify.SearchTypeTrack)
 		if err != nil {
 			utils.Logger.Warnf("Error searching for track: %s by %s: %v", song.Title, song.Artist, err)
 			return err
 		}
 		if searchResults.Tracks.Total > 0 && len(searchResults.Tracks.Tracks) > 0 {
-			utils.Logger.Debugf("Found track: %s - %s", searchResults.Tracks.Tracks[0].Artists[0].Name, searchResults.Tracks.Tracks[0].Name)
-			trackIDs = append(trackIDs, searchResults.Tracks.Tracks[0].ID)
+			track := searchResults.Tracks.Tracks[0]
+			utils.Logger.Debugf("Found track: %s - %s", track.Artists[0].Name, track.Name)
+			trackIDs = append(trackIDs, track.ID)
+			s.cache.AddToCache(song.Artist, song.Title, track.ID.String())
 		}
 		if searchResults.Tracks.Total == 0 {
 			utils.Logger.Warnf("No track found for: %s - %s", song.Artist, song.Title)
