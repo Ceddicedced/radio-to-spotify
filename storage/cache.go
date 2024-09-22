@@ -26,7 +26,8 @@ func (sc *SongCache) AddToCache(artist, title string, trackID string) {
 	key := fmt.Sprintf("%s - %s", artist, title)
 	sc.cache[key] = trackID
 
-	utils.Logger.Debugf("Added song to cache: %s - %s -> %s", artist, title, trackID)
+	cacheSize := len(sc.cache)
+	utils.Logger.Debugf("Added song to cache(%d): %s - %s -> %s", cacheSize, artist, title, trackID)
 }
 
 // Check if a song is in the cache
@@ -36,7 +37,11 @@ func (sc *SongCache) GetFromCache(artist, title string) (string, bool) {
 	key := fmt.Sprintf("%s - %s", artist, title)
 	id, found := sc.cache[key]
 
-	utils.Logger.Debugf("Got song from cache: %s - %s -> %s", artist, title, id)
-
-	return id, found
+	if found {
+		utils.Logger.Debugf("Got song from cache: %s - %s -> %s", artist, title, id)
+		return id, true
+	} else {
+		utils.Logger.Debugf("Song not found in cache: %s - %s", artist, title)
+		return "", false
+	}
 }
