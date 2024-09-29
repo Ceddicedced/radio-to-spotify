@@ -63,6 +63,7 @@ func (s *ScraperService) Start() {
 			go s.updatePlaylists(&wg)
 		case <-s.stopScraper:
 			utils.Logger.Debug("Stop signal received")
+			utils.Logger.Info("Waiting for goroutines to finish")
 			wg.Wait()
 			fetchTicker.Stop()
 			if playlistUpdateTicker != nil {
