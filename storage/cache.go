@@ -150,7 +150,7 @@ func (sc *SongCache) evictOldest() {
 
 // Get expiration duration from environment variable or default value
 func getExpiration() time.Duration {
-	expirationStr := utils.GetEnv("CACHE_EXPIRATION", "5m")
+	expirationStr := utils.GetEnv("CACHE_EXPIRATION", "4w")
 	expiration, err := time.ParseDuration(expirationStr)
 	if err != nil {
 		utils.Logger.Warnf("Invalid CACHE_EXPIRATION value: %v. Using default 5m.", err)
@@ -161,7 +161,7 @@ func getExpiration() time.Duration {
 
 // Get max size for in-memory cache from environment variable or default value
 func getMaxSize() int {
-	maxSizeStr := utils.GetEnv("CACHE_MAX_SIZE", "1000")
+	maxSizeStr := utils.GetEnv("CACHE_MAX_SIZE", "10000")
 	maxSize, err := strconv.Atoi(maxSizeStr)
 	if err != nil {
 		utils.Logger.Warnf("Invalid CACHE_MAX_SIZE value: %v. Using default 1000.", err)
