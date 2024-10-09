@@ -34,7 +34,7 @@
             "request": "launch",
             "mode": "auto",
             "program": "main.go",
-            "args": ["playlist","--station","bollerwagen","--playlist-range" ,"lasthour"]
+            "args": ["playlist","--station","1live","--playlist-range" ,"lastweek", "--loglevel", "debug"]
         }
     ]
 }
