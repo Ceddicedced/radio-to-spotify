@@ -150,11 +150,11 @@ func (sc *SongCache) evictOldest() {
 
 // Get expiration duration from environment variable or default value
 func getExpiration() time.Duration {
-	expirationStr := utils.GetEnv("CACHE_EXPIRATION", "4w")
+	expirationStr := utils.GetEnv("CACHE_EXPIRATION", "756h") // 4 weeks
 	expiration, err := time.ParseDuration(expirationStr)
 	if err != nil {
-		utils.Logger.Warnf("Invalid CACHE_EXPIRATION value: %v. Using default 5m.", err)
-		return 5 * time.Minute
+		utils.Logger.Warnf("Invalid CACHE_EXPIRATION value: %v. Using default 4w.", err)
+		return 756 * time.Hour
 	}
 	return expiration
 }
