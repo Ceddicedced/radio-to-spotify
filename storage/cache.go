@@ -5,7 +5,10 @@ import (
 	"context"
 	"fmt"
 	"radio-to-spotify/utils"
+	"regexp"
+	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -54,12 +57,42 @@ func NewSongCache() *SongCache {
 	}
 }
 
+// NormalizeKey normalizes the artist and title to a consistent format
+func normalizeKey(artist, title string) string {
+	normalizedArtist := normalizeArtist(artist)
+	normalizedTitle := strings.ToLower(strings.TrimSpace(title))
+	return fmt.Sprintf("%s - %s", normalizedArtist, normalizedTitle)
+}
+
+// NormalizeArtist standardizes the artist name format
+func normalizeArtist(artist string) string {
+	// Define a regex pattern to match separators (e.g., "x", ";", "&", "feat.", "featuring")
+	separators := regexp.MustCompile(`(?i)\s*(x|;|&|feat\.|featuring)\s*`)
+
+	// Replace all recognized separators with a comma
+	normalized := separators.ReplaceAllString(artist, ",")
+
+	// Split the normalized string into individual artist names
+	artists := strings.Split(normalized, ",")
+
+	// Trim whitespace from each artist name and convert to lowercase
+	for i := range artists {
+		artists[i] = strings.ToLower(strings.TrimSpace(artists[i]))
+	}
+
+	// Sort artist names alphabetically to ensure consistent ordering
+	sort.Strings(artists)
+
+	// Join the sorted artist names back together with a comma separator
+	return strings.Join(artists, ",")
+}
+
 // Add a song to the cache
 func (sc *SongCache) AddToCache(artist, title, trackID string) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 
-	key := fmt.Sprintf("%s - %s", artist, title)
+	key := normalizeKey(artist, title)
 
 	// If item exists in cache, move it to the front (most recently used)
 	if element, found := sc.cache[key]; found {
@@ -100,7 +133,7 @@ func (sc *SongCache) GetFromCache(artist, title string) (string, bool) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
 
-	key := fmt.Sprintf("%s - %s", artist, title)
+	key := normalizeKey(artist, title)
 
 	// Check in-memory cache
 	if element, found := sc.cache[key]; found {
