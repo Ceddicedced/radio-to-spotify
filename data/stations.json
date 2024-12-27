@@ -97,6 +97,24 @@
       "artistTag": "p.artist",
       "titleTag": "p.songtitle",
       "playlistID": "2S41FhYMM5TDT3bL8XYWEK"
+    },
+    {
+      "id": "oe3",
+      "name": "Hitradio Ö3",
+      "url": "https://audioapi2.orf.at/oe3/api/json/current/broadcast/onair",
+      "type": "json",
+      "artistKey": ["item","interpreter"],
+      "titleKey": ["item","title"],
+      "playlistID": "41Y65txVcouuVacCJCLlYS"
+    },
+    {
+      "id": "kronehit",
+      "name": "Kronehit",
+      "url": "https://core-search.radioplayer.cloud/040/qp/v4/events/?rpId=19",
+      "type": "json",
+      "artistKey": ["results","now","artistName"],
+      "titleKey": ["results","now","name"],
+      "playlistID": "7L7m7femQJfvyCUt9IBFTR"
     }
   ]
 }
