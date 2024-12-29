@@ -32,6 +32,8 @@ func initializeAuthenticator() {
 		os.Exit(1)
 	}
 
+	utils.Logger.Debugf("Initializing Spotify authenticator with client ID: %s and redirect URL: %s", clientID, redirectURL)
+
 	authenticator = spotifyauth.New(
 		spotifyauth.WithClientID(clientID),
 		spotifyauth.WithClientSecret(clientSecret),
@@ -48,14 +50,21 @@ func getAuthToken() (*oauth2.Token, error) {
 	defer saveTokenToFile(tokenFile, token) // Save token to file when function exits
 	initializeAuthenticator()               // Initialize authenticator
 
-	token, _ := loadTokenFromFile(tokenFile)
+	token, err := loadTokenFromFile(tokenFile)
+	if err != nil {
+		utils.Logger.Debug("Error loading token: ", err)
+	}
 	token, err := authenticator.RefreshToken(context.Background(), token)
 	if err == nil && token.Valid() {
+		utils.Logger.Debug("Using existing token")
 		return token, nil
+	}
+	if err != nil {
+		utils.Logger.Debug("Error refreshing token: ", err)
 	}
 
 	http.HandleFunc("/callback", completeAuth)
-	go http.ListenAndServe(":"+utils.GetEnv("SPOTIFY_PORT", "8080"), nil)
+	go http.ListenAndServe(":"+utils.GetEnv("SPOTIFY_PORT", "8999"), nil)
 
 	url := authenticator.AuthURL("state-token")
 	fmt.Println("Please log in to Spotify by visiting the following page in your browser:", url)
@@ -70,14 +79,16 @@ func getAuthToken() (*oauth2.Token, error) {
 }
 
 func completeAuth(w http.ResponseWriter, r *http.Request) {
+	utils.Logger.Debugf("Callback received: %s", r.URL.String())
 	tok, err := authenticator.Token(context.Background(), "state-token", r)
 	if err != nil {
 		http.Error(w, "Couldn't get token ", http.StatusForbidden)
-		logrus.Error(err)
+		utils.Logger.Error(err)
 		return
 	}
 	if st := r.FormValue("state"); st != "state-token" {
 		http.NotFound(w, r)
+		utils.Logger.Errorf("State mismatch: %s != %s\n", st, "state-token")
 		return
 	}
 
@@ -85,16 +96,18 @@ func completeAuth(w http.ResponseWriter, r *http.Request) {
 	_, err = client.CurrentUser(context.Background())
 	if err != nil {
 		http.Error(w, "Couldn't get user", http.StatusForbidden)
-		logrus.Error(err)
+		utils.Logger.Error(err)
 		return
 	}
-
+	utils.Logger.Debug("Login Completed!")
 	saveTokenToFile(tokenFile, tok)
 
-	fmt.Fprintf(w, "Login Completed! You can close this window.")
+	fmt.Fprintf(w, `<script>window.close();</script>`)
 }
 
 func saveTokenToFile(path string, token *oauth2.Token) error {
+	utils.Logger.Debugf("Saving token to file: %s", path)
+	defer utils.Logger.Debug("Token saved to file: ", path)
 	if token == nil {
 		return nil
 	}
@@ -108,6 +121,8 @@ func saveTokenToFile(path string, token *oauth2.Token) error {
 }
 
 func loadTokenFromFile(path string) (*oauth2.Token, error) {
+	utils.Logger.Debugf("Loading token from file: %s", path)
+	defer utils.Logger.Debug("Token loaded from file: ", path)
 	file, err := os.Open(path)
 	if os.IsNotExist(err) {
 		return nil, nil
