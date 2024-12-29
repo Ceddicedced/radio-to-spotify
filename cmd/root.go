@@ -40,7 +40,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&storageType, "storage", "", "Storage type: file, sqlite, or postgres")
 	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "", "Path to storage file or database connection string")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "", "Logging level: debug, info, warn, error, fatal, panic")
-	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "", "Path to stations file")
+	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")
 
 	// Bind flags to Viper
