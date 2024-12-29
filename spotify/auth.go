@@ -53,7 +53,7 @@ func getAuthToken() (*oauth2.Token, error) {
 	if err != nil {
 		utils.Logger.Debug("Error loading token: ", err)
 	}
-	token, err := authenticator.RefreshToken(context.Background(), token)
+	token, err = authenticator.RefreshToken(context.Background(), token)
 	if err == nil && token.Valid() {
 		utils.Logger.Debug("Using existing token")
 		return token, nil
