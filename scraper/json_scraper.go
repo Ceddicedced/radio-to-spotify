@@ -47,9 +47,19 @@ func (s *JSONScraper) GetNowPlaying() (*Song, error) {
 		return nil, err
 	}
 
+	artistStr, ok := artist.(string)
+	if !ok {
+		return nil, fmt.Errorf("artist key does not contain a string")
+	}
+
+	titleStr, ok := title.(string)
+	if !ok {
+		return nil, fmt.Errorf("title key does not contain a string")
+	}
+
 	return &Song{
-		Artist: artist.(string),
-		Title:  title.(string),
+		Artist: artistStr,
+		Title:  titleStr,
 	}, nil
 }
 
