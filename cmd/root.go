@@ -38,7 +38,7 @@ func init() {
 
 	// Define flags
 	rootCmd.PersistentFlags().StringVar(&storageType, "storage", "", "Storage type: file, sqlite, or postgres")
-	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "", "Path to storage file or database connection string")
+	rootCmd.PersistentFlags().StringVar(&storagePath, "storage-path", "./data/", "Path to storage file or database connection string")
 	rootCmd.PersistentFlags().StringVar(&logLevel, "loglevel", "", "Logging level: debug, info, warn, error, fatal, panic")
 	rootCmd.PersistentFlags().StringVar(&stationFile, "station-file", "stations.json", "Path to stations file")
 	rootCmd.PersistentFlags().StringVar(&stationID, "station", "", "Station ID to fetch/store now playing")
@@ -65,12 +65,12 @@ func initConfig() {
 
 	// Read configuration from file if available (optional)
 	viper.SetConfigName("config") // Name of config file (without extension)
-	viper.SetConfigType("yaml")   // Specify the config file format (could be json, toml, etc.)
-	viper.AddConfigPath(".")      // Look for the config file in the current directory
+	viper.SetConfigType("toml")   // Specify the config file format (could be json, toml, etc.)
+	viper.AddConfigPath("data")      // Look for the config file in the current directory
 
 	// Attempt to read in the config file
 	if err := viper.ReadInConfig(); err != nil {
-		logger.Warnf("No config file found, using environment variables and defaults: %v", err)
+		logger.Infof("No config file found, using environment variables and defaults: %v", err)
 	}
 
 	// Initialize storage using Viper configuration

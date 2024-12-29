@@ -17,7 +17,7 @@ import (
 
 var (
 	authenticator *spotifyauth.Authenticator
-	tokenFile     = "data/.token"
+	tokenFile     = "./data/.token"
 	token         *oauth2.Token
 )
 
