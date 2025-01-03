@@ -14,7 +14,7 @@ type JSONScraper struct {
 
 func NewJSONScraper(URL string, artistKey []interface{}, titleKey []interface{}) *JSONScraper {
 	return &JSONScraper{
-		BaseScraper: NewBaseScraper( URL),
+		BaseScraper: NewBaseScraper(URL),
 		ArtistKey:   artistKey,
 		TitleKey:    titleKey,
 	}
@@ -48,12 +48,12 @@ func (s *JSONScraper) GetNowPlaying() (*Song, error) {
 	}
 
 	artistStr, ok := artist.(string)
-	if !ok {
+	if !ok || artistStr == "" {
 		return nil, fmt.Errorf("artist key does not contain a string")
 	}
 
 	titleStr, ok := title.(string)
-	if !ok {
+	if !ok || titleStr == "" {
 		return nil, fmt.Errorf("title key does not contain a string")
 	}
 
