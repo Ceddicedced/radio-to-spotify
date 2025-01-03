@@ -108,6 +108,14 @@
       "playlistID": "41Y65txVcouuVacCJCLlYS"
     },
     {
+      "id": "antennebayern",
+      "name": "Antenne Bayern",
+      "url": "https://prod.radio-api.net/stations/now-playing?stationIds=antennebayern",
+      "type": "plaintext",
+      "regex": "(?P<artist>[^\"]+)\\s*-\\s*(?P<title>[^\"]+)",
+      "playlistID": "5F5lH6GYPgSPtvmuxqpvFZ"
+    },
+    {
       "id": "kronehit",
       "name": "Kronehit",
       "url": "https://core-search.radioplayer.cloud/040/qp/v4/events/?rpId=19",
