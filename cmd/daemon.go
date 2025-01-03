@@ -98,10 +98,12 @@ func (s *ScraperService) fetchNowPlaying(wg *sync.WaitGroup) {
 			if err != nil {
 				utils.Logger.Errorf("Error storing now playing for station %s: %v", station.ID, err)
 			} else {
-				utils.Logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
 				if changed {
 					// Only count stored songs that have changed
 					storedCount++
+					utils.Logger.Debugf("Stored song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
+				} else {
+					utils.Logger.Debugf("No change in song for station %s: %s - %s", station.ID, songs[i].Artist, songs[i].Title)
 				}
 			}
 		}
