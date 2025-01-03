@@ -110,9 +110,10 @@
     {
       "id": "antennebayern",
       "name": "Antenne Bayern",
-      "url": "https://prod.radio-api.net/stations/now-playing?stationIds=antennebayern",
-      "type": "plaintext",
-      "regex": "(?P<artist>[^\"]+)\\s*-\\s*(?P<title>[^\"]+)",
+      "url": "https://www.antenne.de/api/metadata/now",
+      "type": "json",
+      "artistKey": ["data", 4, "artist"],
+      "titleKey": ["data", 4, "title"],
       "playlistID": "5F5lH6GYPgSPtvmuxqpvFZ"
     },
     {
