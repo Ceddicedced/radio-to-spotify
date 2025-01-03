@@ -13,7 +13,6 @@ import (
 
 var (
 	logger      = logrus.New()
-	store       storage.Storage
 	storageType string
 	storagePath string
 	logLevel    string
@@ -66,7 +65,7 @@ func initConfig() {
 	// Read configuration from file if available (optional)
 	viper.SetConfigName("config") // Name of config file (without extension)
 	viper.SetConfigType("toml")   // Specify the config file format (could be json, toml, etc.)
-	viper.AddConfigPath("data")      // Look for the config file in the current directory
+	viper.AddConfigPath("data")   // Look for the config file in the current directory
 
 	// Attempt to read in the config file
 	if err := viper.ReadInConfig(); err != nil {
