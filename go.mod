@@ -1,7 +1,6 @@
 module radio-to-spotify
 
 go 1.23
-
 toolchain go1.23.1
 
 require (
@@ -13,7 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
 	github.com/spf13/cobra v1.9.1
 	github.com/zmb3/spotify/v2 v2.4.3
-	golang.org/x/oauth2 v0.25.0
+	golang.org/x/oauth2 v0.27.0
 )
 
 require (
