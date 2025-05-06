@@ -9,7 +9,7 @@ require (
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.10.10-0.20230707155734-3d613208bca2
-	github.com/ncruces/go-sqlite3 v0.25.0
+	github.com/ncruces/go-sqlite3 v0.25.1
 	github.com/sirupsen/logrus v1.9.4-0.20230606125235-dd1b4c2e81af
 	github.com/spf13/cobra v1.9.1
 	github.com/zmb3/spotify/v2 v2.4.3
